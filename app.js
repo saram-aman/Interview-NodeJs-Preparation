@@ -14,7 +14,7 @@ app.use(session({
     saveUninitialized: false
 }))
 
-app.use(morgan('dev', { skip : (req, res) => !process.env.NODE_ENV}))
+app.use(morgan('dev', { skip : (req, res) => !process.env.NODE_ENV }))
 
 app.use(bodyParser.json())
 
