@@ -1,4 +1,4 @@
-function func(arr) {
+function sortArr(arr) {
     for (let i = 0; i < arr.length; i++) {
         for (let j = 0; j < arr.length; j++) {
             if(arr[i] < arr[j]){
@@ -10,5 +10,5 @@ function func(arr) {
     }
     return arr
 }
-const res = func([3, 5, 8, 1, 4, 7, 4, 2, 9])
+const res = sortArr([3, 5, 8, 1, 4, 7, 4, 2, 9])
 console.log(res)
