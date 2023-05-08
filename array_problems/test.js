@@ -1,34 +1,8 @@
-function func(str){
-    let words = str.split(" ")
-    let output = ""
-
-    for (let i = 0; i < words.length; i++) {
-        let currentWord = words[i]
-        let newWord = ""
-
-        for (let j = 0; j < currentWord.length; j++) {
-            let currentChar = currentWord.charAt(j)
-
-            switch (currentChar) {
-            case "M":
-                newWord += "J"
-                break
-            case "P":
-                newWord += "M"
-                break
-            case "I":
-                newWord += "P"
-                break
-            case "J":
-                newWord += "I"
-                break
-            default:
-                newWord += currentChar
-            }
+function findWrongNumber(arr) {
+    for (let i = 1; i < arr.length; i++) {
+        if(arr[i] !== arr[i - 1] + 1) {
+            return arr[i]
         }
-        output += newWord + " "
     }
-    return output
 }
-let res = func("Mobile Programming In JAVA")
-console.log(res)
+console.log(findWrongNumber([1, 2, 3, 4, 17, 5, 6, 7, 8]))
