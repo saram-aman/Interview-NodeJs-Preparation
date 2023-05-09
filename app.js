@@ -27,8 +27,8 @@ app.use(cors({
 }))
 
 app.use(function(req, res, next) {
-    res.setHeader("Access-Controll-Allow-Origin", "*"),
-    res.setHeader("Access-Control-Allow-Headers", "rigin, X-Request-With, Content-Type, Accept, Authorization")
+    res.setHeader("Access-Control-Allow-Origin", "*"),
+    res.setHeader("Access-Control-Allow-Headers", "origin, X-Request-With, Content-Type, Accept, Authorization")
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
     res.setHeader("Access-Control-Allow-Credentials", true)
     if(req.method === "OPTIONS"){
