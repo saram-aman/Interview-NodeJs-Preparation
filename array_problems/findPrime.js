@@ -5,7 +5,6 @@ function isPrime(number) {
     }
     return true
 }
-
 function findPrime(array) {
     let result = []
     for(let i = 0; i < array.length; i++) {
