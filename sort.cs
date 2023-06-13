@@ -128,7 +128,7 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        List<int> arr = new List<int> { 0, 43, 3, 2, 3, 4 };
+        List<int> arr = new List<int> { 0, 43, 3, 2, 3, 4, 6 };
         Sort sort = new Sort();
 
         Task<List<int>> quickSortPromise = sort.Quick(arr);

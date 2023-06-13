@@ -69,7 +69,7 @@ class Sort:
         return merged
 
 
-arr = [0, 43, 3, 2, 3, 4]
+arr = [0, 43, 3, 2, 3, 4, 6]
 sort = Sort()
 
 quick_sort = sort.quick(arr)

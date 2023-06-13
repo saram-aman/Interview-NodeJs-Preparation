@@ -104,7 +104,7 @@ class Sort {
     }
 }
 
-$arr = [0, 43, 3, 2, 3, 4];
+$arr = [0, 43, 3, 2, 3, 4, 6];
 $sort = new Sort();
 
 $quickSort = $sort->quick($arr);
