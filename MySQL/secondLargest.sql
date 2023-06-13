@@ -1,0 +1,3 @@
+SELECT Quantity
+FROM OrderDetails
+ORDER BY Quantity DESC LIMIT 1 OFFSET 1
