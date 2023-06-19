@@ -5,7 +5,8 @@ class Sort {
         const pivot = list[0]
         const smaller = list.filter((item) => item < pivot)
         const bigger = list.filter((item) => item > pivot)
-        return [...(await this.quick(smaller)),pivot,...(await this.quick(bigger))]
+        let equal = list.filter((item) => item == pivot)
+        return [...(await this.quick(smaller)),...equal,...(await this.quick(bigger))]
     }
     async bubble(items = []) {
         for (let passover = 0; passover < items.length; passover++) {
@@ -34,14 +35,12 @@ class Sort {
         return items
     }
     async insert(items = []) {
-        for (let i = 1; i < items.length; i++) {
-            let index = i - 1
-            let temporary = items[i]
-            while (index >= 0 && items[index] > temporary) {
-                items[index + 1] = items[index]
-                index--
+        for(var i = 1; i < items.length; i++) {
+            var temp = items[i]
+            for(var j = i - 1; j >= 0 && items[j] > temp; j--) {
+                items[j+1] = items[j]
             }
-            items[index + 1] = temporary
+            items[j+1] = temp
         }
         return items
     }
@@ -64,28 +63,10 @@ class Sort {
         const right = await this.mergeSort(items.slice(middle))
         return this.merge(left, right)
     }
-    merge(left, right) {
-        const merged = []
-        let leftIndex = 0
-        let rightIndex = 0
-        while (leftIndex < left.length && rightIndex < right.length) {
-            if (left[leftIndex] < right[rightIndex]) {
-                merged.push(left[leftIndex])
-                leftIndex++
-            } else {
-                merged.push(right[rightIndex])
-                rightIndex++
-            }
-        }
-        while (leftIndex < left.length) {
-            merged.push(left[leftIndex])
-            leftIndex++
-        }
-        while (rightIndex < right.length) {
-            merged.push(right[rightIndex])
-            rightIndex++
-        }
-        return merged
+    merge(node1, node2) {
+        var result = []
+        while (node1.length > 0 && node2.length > 0) result.push(node1[0] < node2[0]? node1.shift() : node2.shift())
+        return result.concat(node1.length? node1 : node2)
     }
 }
 const arr = [0, 43, 3, 2, 3, 4]
