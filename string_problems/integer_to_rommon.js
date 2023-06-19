@@ -9,3 +9,4 @@ function intToCommon(num) {
     }
     return result
 }
+console.log(intToCommon(6))
