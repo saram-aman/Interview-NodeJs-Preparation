@@ -7,7 +7,4 @@ function func(arr) {
     }
     return result
 }
-
 console.log(func([1,5,3,[4,8,7,0,6,[7,9,7,8]]]))
-
-// [1,5,3,4,8,7,0,6,7,9,7,8]
