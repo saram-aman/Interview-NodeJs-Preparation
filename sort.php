@@ -10,7 +10,10 @@ class Sort {
         $bigger = array_filter($list, function($item) use ($pivot) {
             return $item > $pivot;
         });
-        return array_merge($this->quick($smaller), [$pivot], $this->quick($bigger));
+        $equal = array_filter($list, function($item) use ($pivot) {
+            return $item == $pivot;
+        });
+        return array_merge($this->quick($smaller), $equal, $this->quick($bigger));
     }
 
     public function bubble($items = []) {
@@ -81,26 +84,8 @@ class Sort {
 
     private function merge($left, $right) {
         $merged = [];
-        $leftIndex = 0;
-        $rightIndex = 0;
-        while ($leftIndex < count($left) && $rightIndex < count($right)) {
-            if ($left[$leftIndex] < $right[$rightIndex]) {
-                $merged[] = $left[$leftIndex];
-                $leftIndex++;
-            } else {
-                $merged[] = $right[$rightIndex];
-                $rightIndex++;
-            }
-        }
-        while ($leftIndex < count($left)) {
-            $merged[] = $left[$leftIndex];
-            $leftIndex++;
-        }
-        while ($rightIndex < count($right)) {
-            $merged[] = $right[$rightIndex];
-            $rightIndex++;
-        }
-        return $merged;
+        while (count($left) > 0 && count($right) > 0) ($left[0] <= $right[0]) ? $merged[] = array_shift($left) : $merged[] = array_shift($right);
+        return array_merge($merged, $left, $right);
     }
 }
 

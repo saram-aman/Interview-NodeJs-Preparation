@@ -5,7 +5,8 @@ class Sort:
         pivot = items[0]
         smaller = [item for item in items if item < pivot]
         bigger = [item for item in items if item > pivot]
-        return self.quick(smaller) + [pivot] + self.quick(bigger)
+        equal = [item for item in items if item == pivot]
+        return self.quick(smaller) + equal + self.quick(bigger)
 
     def bubble(self, items):
         length = len(items)
@@ -55,17 +56,15 @@ class Sort:
 
     def merge(self, left, right):
         merged = []
-        left_index = 0
-        right_index = 0
-        while left_index < len(left) and right_index < len(right):
-            if left[left_index] < right[right_index]:
-                merged.append(left[left_index])
-                left_index += 1
+        while len(left) > 0 and len(right) > 0:
+            if left[0] <= right[0]:
+                merged.append(left[0])
+                left = left[1:]
             else:
-                merged.append(right[right_index])
-                right_index += 1
-        merged.extend(left[left_index:])
-        merged.extend(right[right_index:])
+                merged.append(right[0])
+                right = right[1:]
+        merged.extend(left)
+        merged.extend(right)
         return merged
 
 
