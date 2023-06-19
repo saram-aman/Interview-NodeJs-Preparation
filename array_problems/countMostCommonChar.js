@@ -1,13 +1,8 @@
 function countMostCommonChar(str) {
-    let arr = str.toLowerCase().replace(/[^A-Za-z]+/g, '').split('')
-    let obj = {}
-    for (let i = 0; i < arr.length; i++) {
-        if (obj[arr[i]]) {
-            obj[arr[i]]++
-        } else {
-            obj[arr[i]] = 1
-        }
-    }
+    let result = []
+    str = str.toLowerCase()
+    if (!str.length) return false
+    for (var i = 0; i < str.length; i++) if (str.charCodeAt(i)) if (str.charCodeAt(i) == char.toLowerCase().charCodeAt(0)) result.push(str.charCodeAt(i))
     let max = 0
     let maxKey = ''
     for (let key in obj) {
