@@ -11,7 +11,11 @@ class Sort
         int pivot = list[0];
         List<int> smaller = list.FindAll(item => item < pivot);
         List<int> bigger = list.FindAll(item => item > pivot);
-        return new List<int>(await Quick(smaller)).Concat(new List<int> { pivot }).Concat(await Quick(bigger)).ToList();
+        List<int> sorted = new List<int>();
+        sorted.AddRange(await Quick(smaller));
+        sorted.Add(pivot);
+        sorted.AddRange(await Quick(bigger));
+        return sorted;
     }
 
     public async Task<List<int>> Bubble(List<int> items)
@@ -126,26 +130,17 @@ class Sort
 
 class Program
 {
-    static async Task Main(string[] args)
+    public static async Task Main(string[] args)
     {
         List<int> arr = new List<int> { 0, 43, 3, 2, 3, 4, 6 };
         Sort sort = new Sort();
 
-        Task<List<int>> quickSortPromise = sort.Quick(arr);
-        Task<List<int>> selectSortPromise = sort.Select(arr);
-        Task<List<int>> insertSortPromise = sort.Insert(arr);
-        Task<List<int>> bubbleSortPromise = sort.Bubble(arr);
-        Task<List<int>> simpleSortPromise = sort.Simple(arr);
-        Task<List<int>> mergeSortPromise = sort.MergeSort(arr);
-
-        await Task.WhenAll(quickSortPromise, selectSortPromise, insertSortPromise, bubbleSortPromise, simpleSortPromise, mergeSortPromise);
-
-        List<int> quickSort = await quickSortPromise;
-        List<int> selectSort = await selectSortPromise;
-        List<int> insertSort = await insertSortPromise;
-        List<int> bubbleSort = await bubbleSortPromise;
-        List<int> simpleSort = await simpleSortPromise;
-        List<int> mergeSort = await mergeSortPromise;
+        List<int> quickSort = await Task.Run(() => sort.Quick(arr));
+        List<int> selectSort = await Task.Run(() => sort.Select(arr));
+        List<int> insertSort = await Task.Run(() => sort.Insert(arr));
+        List<int> bubbleSort = await Task.Run(() => sort.Bubble(arr));
+        List<int> simpleSort = await Task.Run(() => sort.Simple(arr));
+        List<int> mergeSort = await Task.Run(() => sort.MergeSort(arr));
 
         Console.WriteLine("quick sort: " + string.Join(", ", quickSort));
         Console.WriteLine("select sort: " + string.Join(", ", selectSort));

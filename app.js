@@ -41,4 +41,7 @@ app.use(function(req, res, next) {
     return res.status(404).send("Invalid URL")
 })
 
+let printLog = (message) => console.log(message)
+global.printLog = printLog
+
 module.exports = app
