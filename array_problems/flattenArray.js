@@ -1,15 +1,4 @@
-function flattenArray(arr) {
-    let result = []
-    for (let i = 0; i < arr.length; i++) {
-        if (Array.isArray(arr[i])) {
-             result = result.concat(flattenArray(arr[i]))
-        } else {
-             result.push(arr[i])
-        }
-    }
-    return result
-}
-console.log(flattenArray([
+const array = [
   [
     [
       [
@@ -103,4 +92,24 @@ console.log(flattenArray([
     ]
   ]
 ]
-))
+class DSA {
+    async flattenArray(arr) {
+        let result = []
+        for(let i = 0; i < arr.length; i++) {
+            if(Array.isArray(arr[i])) {
+                result = result.concat(await this.flattenArray(arr[i]))
+            } else {
+                result.push(arr[i])
+            }
+        }
+        return result
+    }
+}
+const dsa = new DSA()
+const flatten = dsa.flattenArray(array)
+Promise.all([flatten])
+    .then(([flattenArr]) => {
+        console.log(flattenArr)
+    }).catch((err) => {
+        console.log('The error has occurred in the code: ', err)
+    })
