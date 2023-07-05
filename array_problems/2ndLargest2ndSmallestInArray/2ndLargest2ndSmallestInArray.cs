@@ -35,7 +35,7 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        List<int> arr = new List<int> {5, 9, 1, 11, 7, 2, 6, 3, 10, 8, 12, 4};
+        List<int> arr = new List<int> { 5, 9, 1, 11, 7, 2, 6, 3, 10, 8, 12, 4 };
         ArrayProblems array_problems = new ArrayProblems();
         Dictionary<string, int> result = await array_problems.Func(arr);
 
