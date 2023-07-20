@@ -12,9 +12,7 @@ class ArrayProblems {
                 count[num] = 1;
             } else {
                 count[num]++;
-                if (count[num] == 2) {
-                    result.Add(num);
-                }
+                if (count[num] == 2) result.Add(num);
             }
         }
         result.Sort();
