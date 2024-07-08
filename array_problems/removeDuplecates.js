@@ -1,10 +1,8 @@
 function func(arr) {
-    let newArr = []
     for (let i = 0; i < arr.length; i++) {
         const element = arr[i]
-        if(!newArr.includes(element)){
-            newArr.push(element)
-        }
+        if(!arr.includes(element)) delete element
     }
-    return newArr
+    return arr
 }
+console.log([3,5,2,7,9,3,2,6,9])
