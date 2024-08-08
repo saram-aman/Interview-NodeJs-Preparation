@@ -1,11 +1,24 @@
-import math
+import time
 
-def findMedian(arr1, arr2):
-    merged = arr1 + arr2
-    merged.sort()
-    mid = math.floor(len(merged) / 2)
-    return merged[mid - 1] + merged[mid] / 2 if (len(merged) % 2 == 0) else merged[mid]
+class TimerError(Exception):
+    """A custom exception used to report errors in use of Timer class"""
 
+class Timer:
+    def __init__(self):
+        self._start_time = None
 
-median = findMedian([1,2,3,4,5], [4,5,6,7,8])
-print(median)
+    def start(self):
+        """Start a new timer"""
+        if self._start_time is not None:
+            raise TimerError(f"Timer is running. Use .stop() to stop it")
+
+        self._start_time = time.perf_counter()
+
+    def stop(self):
+        """Stop the timer, and report the elapsed time"""
+        if self._start_time is None:
+            raise TimerError(f"Timer is not running. Use .start() to start it")
+
+        elapsed_time = time.perf_counter() - self._start_time
+        self._start_time = None
+        print(f"Elapsed time: {elapsed_time:0.4f} seconds")

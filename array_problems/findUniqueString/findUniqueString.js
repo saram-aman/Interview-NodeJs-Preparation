@@ -5,9 +5,7 @@ function findUniqueString(arr) {
         let isUnique = element.split('').every((el, index, array) => {
             return array.indexOf(el) === array.lastIndexOf(el)
         })
-        if(isUnique) {
-            resArr.push(element)
-        }
+        if(isUnique) resArr.push(element)
     }
     return resArr.length ? resArr.toString() : false
 }

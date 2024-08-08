@@ -1,6 +1,4 @@
 import math
-
-
 class ArrayProblems:
     def arrayToSubArray(self, arr, size):
         size = math.ceil(len(arr) / size)
