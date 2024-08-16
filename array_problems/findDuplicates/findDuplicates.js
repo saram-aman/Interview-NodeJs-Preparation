@@ -3,9 +3,8 @@ class ArrayProblems {
         const count = {}
         const result = []
         for (let i = 0; i < arr.length; i++) {
-            const num = arr[i]
-            count[num] = (count[num] || 0) + 1
-            if (count[num] === 2) result.push(num)
+            count[arr[i]] = (count[arr[i]] || 0) + 1
+            if (count[arr[i]] === 2) result.push(arr[i])
         }
         return result.sort((a, b) => a - b)
     }
