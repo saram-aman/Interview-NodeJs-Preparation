@@ -1,9 +1,6 @@
 class ArrayProblems{
-    async addTwoNumbers(l1, l2) {
-        let array = (parseInt(l1.toString().replace(/[,]/g, '')) + parseInt(l2.toString().replace(/[,]/g, ''))).toString().split("").reverse()
-        let result = []
-        for(let i = 0; i < array.length; i++) result.push(parseInt(array[i]))
-        return result
+    async addTwoNumbers(arr1, arr2) {
+        return (parseInt(arr1.reverse().toString().replace(/[,]/g, "")) + parseInt(arr2.reverse().toString().replace(/[,]/g, ""))).toString().split("").reverse().map(Number)
     }
 }
 const arr_problems = new ArrayProblems()
