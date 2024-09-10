@@ -9,28 +9,18 @@ class Sort {
         return [...(await this.quick(smaller)),...equal,...(await this.quick(bigger))]
     }
     async bubble(items = []) {
-        for (let passover = 0; passover < items.length; passover++) {
-            for (let index = 0; index < items.length; index++) {
-                if (items[index] > items[index + 1]) {
-                    let temporary = items[index]
-                    items[index] = items[index + 1]
-                    items[index + 1] = temporary
-                }
+        for (let i = 0; i < items.length; i++) {
+            for (let j = 0; j < items.length; j++) {
+                if (items[j] > items[j + 1]) [items[j], items[j + 1]] = [items[j + 1], items[j]]
             }
         }
         return items
     }
     async select(items = []) {
-        for (let passes = 0; passes < items.length; passes++) {
-            let min = passes
-            for (let i = passes; i < items.length; i++) {
-                if (items[i] < items[min]) min = i
-            }
-            if (min !== passes) {
-                let temporary = items[passes]
-                items[passes] = items[min]
-                items[min] = temporary
-            }
+        for (let i = 0; i < items.length; i++) {
+            let min = i
+            for (let j = i; j < items.length; j++) if(items[j] < items[min]) min = j
+            if(min !== i) [items[i], items[min]] = [items[min], items[i]]
         }
         return items
     }
