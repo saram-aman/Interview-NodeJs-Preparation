@@ -17,22 +17,14 @@ server.on('listening', onListening)
 
 function normalizePort(val) {
     let port = parseInt(val, 10)
-    if (isNaN(port)) {
-        return val
-    }
-    if (port >= 0) {
-        return port
-    }
+    if (isNaN(port)) return val
+    if (port >= 0) return port
     return false
 }
 
 function onError(error) {
-    if (error.syscall !== 'listen') {
-        throw error
-    }
-    let bind = typeof port === 'string'
-        ? 'Pipe ' + port
-        : 'Port ' + port
+    if (error.syscall !== 'listen') throw error
+    let bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port
 
     switch (error.code) {
         case 'EACCES':
@@ -50,8 +42,6 @@ function onError(error) {
 
 function onListening() {
     let addr = server.address()
-    let bind = typeof addr === 'string'
-        ? 'pipe ' + addr
-        : 'port ' + addr.port
+    let bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
     debug('Listening on ' + bind)
 }
