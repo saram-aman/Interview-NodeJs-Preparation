@@ -7,12 +7,6 @@ class ArrayProblems {
 }
 
 const arrayProblems = new ArrayProblems()
-const twoSum = arrayProblems.twoSum([2,7,11,15], 9)
-
-Promise.all(([twoSum]))
-    .then(([two_sum_res]) => {
-        console.log(two_sum_res)
-    })
-    .catch ((err) => {
-        console.error('An error accrued in twoSum function', err)
-    })
+arrayProblems.twoSum([2,7,11,15], 9)
+    .then((response) => console.log(response))
+    .catch((err) => console.error('An error accrued in twoSum function', err))

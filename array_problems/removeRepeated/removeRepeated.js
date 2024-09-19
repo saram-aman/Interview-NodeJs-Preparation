@@ -24,10 +24,10 @@ class ArrayProblems {
 }
 const array_problems = new ArrayProblems()
 Promise.all([
-         array_problems.removeRepeatedA([2,2,3,2]),
-         array_problems.removeRepeatedB([0,1,0,1,0,1,99]),
-         array_problems.removeRepeatedC([3,6,2,3,5,8,6])
-     ])
+        array_problems.removeRepeatedA([2,2,3,2]),
+        array_problems.removeRepeatedB([0,1,0,1,0,1,99]),
+        array_problems.removeRepeatedC([3,6,2,3,5,8,6])
+    ])
     .then(([
         removeRepeatedA,
         removeRepeatedB,
