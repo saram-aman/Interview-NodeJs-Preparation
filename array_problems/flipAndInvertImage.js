@@ -1,14 +1,14 @@
 function flipAndInvertImage(image) {
      let result = []
-     for(let i = 0; i < image.length; i++) {
-          let invertedArr = image[i].reverse().toString().replace(/[,01]/g, (match) => {
-               return (match == 0) ? 1 : (match == 1) ? 0 : (match == ",") ? "" : ""
-          })
-          let subArr = []
-          for (let j = 0; j < invertedArr.length; j++) {
-            subArr.push(parseInt(invertedArr[j]))
+     for (let i = 0; i < image.length; i++) {
+          let subImg = image[i]
+          let resSub = []
+          for (let j = 0; j < subImg.length; j++) {
+               let zeroOne = subImg[j]
+               if (zeroOne == 1) resSub.push(0)
+               if (zeroOne == 0) resSub.push(1)
           }
-          result.push(subArr)
+          result.push(resSub)
      }
      return result
 }
