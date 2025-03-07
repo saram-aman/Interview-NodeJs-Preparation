@@ -11,10 +11,8 @@ class ArrayProblems {
 }
 const array_problems = new ArrayProblems()
 const duplicates = array_problems.findDuplicates([12,34,67,89,54,43,12,34,56,78,98,13,64])
-Promise.all(([duplicates]))
-    .then(([findDuplicates]) => {
-        console.log(findDuplicates)
-    })
-    .catch((err) => {
-        console.log("Error accrued while finding duplicates", err)
-    })
+duplicates.then(findDuplicates => console.log(findDuplicates))
+    .catch((err) => console.log("Error accrued while finding duplicates", err))
+
+// time complexity: O(n^2)
+// space complexity: O(n)

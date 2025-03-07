@@ -1,18 +1,22 @@
 <?php
 class ArrayPromblems {
     public function removeAdjacentDuplicates($arr) {
-        $n = count($arr);
-        $j = 0;
-        for ($i = 0; $i < $n; $i++) {
-            if ($i < $n - 1 && $arr[$i] == $arr[$i + 1]) {
-                continue;
+        try {
+            $n = count($arr);
+            $j = 0;
+            for ($i = 0; $i < $n; $i++) {
+                if ($i < $n - 1 && $arr[$i] == $arr[$i + 1]) {
+                    continue;
+                }
+                $arr[$j++] = $arr[$i];
             }
-            $arr[$j++] = $arr[$i];
+            while ($j < $n) {
+                $arr[$j++] = 0;
+            }
+            return $arr;
+        } catch (\Throwable $th) {
+            throw $th;
         }
-        while ($j < $n) {
-            $arr[$j++] = 0;
-        }
-        return $arr;
     }
 }
 $arr_problems = new ArrayPromblems();

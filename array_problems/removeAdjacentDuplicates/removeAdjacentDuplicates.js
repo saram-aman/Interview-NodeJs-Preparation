@@ -12,10 +12,9 @@ class ArrayProblems {
     } 
 }
 const arrayProblems = new ArrayProblems();
-const removeAdjacentDuplicatesPromise = arrayProblems.removeAdjacentDuplicates([1, 2, 2, 3, 4, 4, 4, 5, 5, 6]);
-Promise.all(([removeAdjacentDuplicatesPromise]))
-    .then(([removeAdjacentDuplicates]) => {
-        console.log(removeAdjacentDuplicates);
-    }).catch(error => {
-        console.error('Error occurred while removing adjacent duplicates:', error);
-    });
+arrayProblems.removeAdjacentDuplicates([1, 2, 2, 3, 4, 4, 4, 5, 5, 6])
+    .then(removeAdjacentDuplicates => console.log(removeAdjacentDuplicates))
+    .catch(error => console.error('Error occurred while removing adjacent duplicates:', error));
+
+// time complexity: O(n)
+// space complexity: O(n)

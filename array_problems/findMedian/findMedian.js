@@ -1,16 +1,19 @@
 class ArrayProblems {
     async findMedian(arr1, arr2) {
-        let merged = arr1.concat(arr2)
-        merged.sort((a, b) => a - b)
-        let mid = Math.floor(merged.length / 2)
-        return merged.length % 2 === 0 ? (merged[mid - 1] + merged[mid]) / 2 : merged[mid]
+        try {
+            const arr = [...arr1, ...arr2].sort((a, b) => a - b)
+            const mid = Math.floor(arr.length / 2)
+            return arr.length % 2 === 0 ? (arr[mid - 1] + arr[mid]) / 2 : arr[mid]
+        } catch (error) {
+            console.log("Error occurred while finding median", error)
+        }
     }
 }
 const array_problems = new ArrayProblems()
-Promise.all(([array_problems.findMedian([1,2,3,4,5], [4,5,6,7,8])]))
-    .then(([median]) => {
-        console.log(median)
-    })
-    .catch((err) => {
-        console.log("Error accrued while finding median", err)
-    })
+array_problems.findMedian([1,2,3,4,5], [4,5,6,7,8])
+    .then(median => console.log(median))
+    .catch((err) => console.log("Error accrued while finding median", err))
+
+// time complexity: O(n)
+// space complexity: O(n)
+// Output: 4.5
