@@ -1,146 +1,149 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
 
-class Sort
+public class ArrayProblems
 {
-    public async Task<List<int>> Quick(List<int> items)
+    private int[] arr;
+
+    public ArrayProblems(int[] arr)
     {
-        List<int> list = new List<int>(items);
-        if (list.Count < 2) return list;
-        int pivot = list[0];
-        List<int> smaller = list.FindAll(item => item < pivot);
-        List<int> bigger = list.FindAll(item => item > pivot);
-        List<int> sorted = new List<int>();
-        sorted.AddRange(await Quick(smaller));
-        sorted.Add(pivot);
-        sorted.AddRange(await Quick(bigger));
-        return sorted;
+        this.arr = (int[])arr.Clone(); 
     }
 
-    public async Task<List<int>> Bubble(List<int> items)
+    public int[] Quick(int[] items = null)
     {
-        for (int passover = 0; passover < items.Count; passover++)
+        int[] list = items == null ? (int[])arr.Clone() : (int[])items.Clone();
+        if (list.Length < 2) return list;
+        int pivot = list[0];
+        List<int> smaller = list.Skip(1).Where(item => item < pivot).ToList();
+        List<int> bigger = list.Skip(1).Where(item => item > pivot).ToList();
+        List<int> equal = list.Where(item => item == pivot).ToList();
+        return Quick(smaller.ToArray()).Concat(equal.ToArray()).Concat(Quick(bigger.ToArray())).ToArray();
+    }
+
+    public int[] Bubble(int[] items = null)
+    {
+        int[] list = items == null ? (int[])arr.Clone() : (int[])items.Clone();
+        int length = list.Length;
+        for (int passover = 0; passover < length; passover++)
         {
-            for (int index = 0; index < items.Count - 1; index++)
+            for (int index = 0; index < length - 1; index++)
             {
-                if (items[index] > items[index + 1])
+                if (list[index] > list[index + 1])
                 {
-                    int temporary = items[index];
-                    items[index] = items[index + 1];
-                    items[index + 1] = temporary;
+                    int temporary = list[index];
+                    list[index] = list[index + 1];
+                    list[index + 1] = temporary;
                 }
             }
         }
-        return items;
+        return list;
     }
 
-    public async Task<List<int>> Select(List<int> items)
+    public int[] Select(int[] items = null)
     {
-        for (int passes = 0; passes < items.Count; passes++)
+        int[] list = items == null ? (int[])arr.Clone() : (int[])items.Clone();
+        int length = list.Length;
+        for (int passes = 0; passes < length; passes++)
         {
             int min = passes;
-            for (int i = passes; i < items.Count; i++)
+            for (int i = passes; i < length; i++)
             {
-                if (items[i] < items[min]) min = i;
+                if (list[i] < list[min]) min = i;
             }
             if (min != passes)
             {
-                int temporary = items[passes];
-                items[passes] = items[min];
-                items[min] = temporary;
+                int temporary = list[passes];
+                list[passes] = list[min];
+                list[min] = temporary;
             }
         }
-        return items;
+        return list;
     }
 
-    public async Task<List<int>> Insert(List<int> items)
+    public int[] Insert(int[] items = null)
     {
-        for (int i = 1; i < items.Count; i++)
+        int[] list = items == null ? (int[])arr.Clone() : (int[])items.Clone();
+        int length = list.Length;
+        for (int i = 1; i < length; i++)
         {
             int index = i - 1;
-            int temporary = items[i];
-            while (index >= 0 && items[index] > temporary)
+            int temporary = list[i];
+            while (index >= 0 && list[index] > temporary)
             {
-                items[index + 1] = items[index];
+                list[index + 1] = list[index];
                 index--;
             }
-            items[index + 1] = temporary;
+            list[index + 1] = temporary;
         }
-        return items;
+        return list;
     }
 
-    public async Task<List<int>> Simple(List<int> items)
+    public int[] Simple(int[] items = null)
     {
-        for (int i = 0; i < items.Count; i++)
+        int[] list = items == null ? (int[])arr.Clone() : (int[])items.Clone();
+        int length = list.Length;
+        for (int i = 0; i < length; i++)
         {
-            for (int j = 0; j < items.Count; j++)
+            for (int j = 0; j < length; j++)
             {
-                if (items[i] < items[j])
+                if (list[i] < list[j])
                 {
-                    int temp = items[i];
-                    items[i] = items[j];
-                    items[j] = temp;
+                    int temp = list[i];
+                    list[i] = list[j];
+                    list[j] = temp;
                 }
             }
         }
-        return items;
+        return list;
     }
 
-    public async Task<List<int>> MergeSort(List<int> items)
+    public int[] MergeSort(int[] items = null)
     {
-        if (items.Count <= 1) return items;
-        int middle = items.Count / 2;
-        List<int> left = await MergeSort(items.GetRange(0, middle));
-        List<int> right = await MergeSort(items.GetRange(middle, items.Count - middle));
+        int[] list = items == null ? (int[])arr.Clone() : (int[])items.Clone();
+        if (list.Length <= 1) return list;
+        int middle = list.Length / 2;
+        int[] left = MergeSort(list.Take(middle).ToArray());
+        int[] right = MergeSort(list.Skip(middle).ToArray());
         return Merge(left, right);
     }
 
-    private List<int> Merge(List<int> left, List<int> right)
+    private int[] Merge(int[] left, int[] right)
     {
         List<int> merged = new List<int>();
         int leftIndex = 0;
         int rightIndex = 0;
-        while (leftIndex < left.Count && rightIndex < right.Count)
+        while (leftIndex < left.Length && rightIndex < right.Length)
         {
-            if (left[leftIndex] < right[rightIndex])
+            if (left[leftIndex] <= right[rightIndex])
             {
-                merged.Add(left[leftIndex]);
-                leftIndex++;
+                merged.Add(left[leftIndex++]);
             }
             else
             {
-                merged.Add(right[rightIndex]);
-                rightIndex++;
+                merged.Add(right[rightIndex++]);
             }
         }
-        while (leftIndex < left.Count)
-        {
-            merged.Add(left[leftIndex]);
-            leftIndex++;
-        }
-        while (rightIndex < right.Count)
-        {
-            merged.Add(right[rightIndex]);
-            rightIndex++;
-        }
-        return merged;
+        while (leftIndex < left.Length) merged.Add(left[leftIndex++]);
+        while (rightIndex < right.Length) merged.Add(right[rightIndex++]);
+        return merged.ToArray();
     }
 }
 
-class Program
+public class Program
 {
-    public static async Task Main(string[] args)
+    public static void Main(string[] args)
     {
-        List<int> arr = new List<int> { 0, 43, 3, 2, 3, 4, 6 };
-        Sort sort = new Sort();
+        int[] arr = { 0, 43, 3, 2, 3, 4, 6 };
+        ArrayProblems sort = new ArrayProblems(arr);
 
-        List<int> quickSort = await Task.Run(() => sort.Quick(arr));
-        List<int> selectSort = await Task.Run(() => sort.Select(arr));
-        List<int> insertSort = await Task.Run(() => sort.Insert(arr));
-        List<int> bubbleSort = await Task.Run(() => sort.Bubble(arr));
-        List<int> simpleSort = await Task.Run(() => sort.Simple(arr));
-        List<int> mergeSort = await Task.Run(() => sort.MergeSort(arr));
+        int[] quickSort = sort.Quick();
+        int[] selectSort = sort.Select();
+        int[] insertSort = sort.Insert();
+        int[] bubbleSort = sort.Bubble();
+        int[] simpleSort = sort.Simple();
+        int[] mergeSort = sort.MergeSort();
 
         Console.WriteLine("quick sort: " + string.Join(", ", quickSort));
         Console.WriteLine("select sort: " + string.Join(", ", selectSort));

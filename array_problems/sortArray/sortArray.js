@@ -1,80 +1,79 @@
-class Sort {
-    async quick(items) {
-        const list = [...items]
-        if (list.length < 2) return list
-        const pivot = list[0]
-        const smaller = list.filter((item) => item < pivot)
-        const bigger = list.filter((item) => item > pivot)
-        let equal = list.filter((item) => item == pivot)
-        return [...(await this.quick(smaller)),...equal,...(await this.quick(bigger))]
+class ArrayProblem {
+    constructor(arr) {
+        this.arr = arr;
     }
-    async bubble(items = []) {
-        for (let i = 0; i < items.length; i++) {
-            for (let j = 0; j < items.length; j++) {
-                if (items[j] > items[j + 1]) [items[j], items[j + 1]] = [items[j + 1], items[j]]
+
+    Quick(arr = this.arr) {
+        const list = [...arr];
+        if (list.length < 2) return list;
+        const pivot = list[0];
+        const smaller = list.filter((arr) => arr < pivot);
+        const bigger = list.filter((arr) => arr > pivot);
+        let equal = list.filter((arr) => arr == pivot);
+        return [...this.Quick(smaller), ...equal, ...this.Quick(bigger)];
+    }
+
+    Bubble() {
+        for (let i = 0; i < this.arr.length; i++) {
+            for (let j = 0; j < this.arr.length; j++) {
+                if (this.arr[j] > this.arr[j + 1]) [this.arr[j], this.arr[j + 1]] = [this.arr[j + 1], this.arr[j]];
             }
         }
-        return items
+        return this.arr;
     }
-    async select(items = []) {
-        for (let i = 0; i < items.length; i++) {
-            let min = i
-            for (let j = i; j < items.length; j++) if(items[j] < items[min]) min = j
-            if(min !== i) [items[i], items[min]] = [items[min], items[i]]
+
+    Select() {
+        for (let i = 0; i < this.arr.length; i++) {
+            let min = i;
+            for (let j = i; j < this.arr.length; j++) if (this.arr[j] < this.arr[min]) min = j;
+            if (min !== i) [this.arr[i], this.arr[min]] = [this.arr[min], this.arr[i]];
         }
-        return items
+        return this.arr;
     }
-    async insert(items = []) {
-        for(var i = 1; i < items.length; i++) {
-            var temp = items[i]
-            for(var j = i - 1; j >= 0 && items[j] > temp; j--) {
-                items[j+1] = items[j]
+
+    Insert() {
+        for (var i = 1; i < this.arr.length; i++) {
+            var temp = this.arr[i];
+            for (var j = i - 1; j >= 0 && this.arr[j] > temp; j--) {
+                this.arr[j + 1] = this.arr[j];
             }
-            items[j+1] = temp
+            this.arr[j + 1] = temp;
         }
-        return items
+        return this.arr;
     }
-    async simple(items = []) {
-        for (let i = 0; i < items.length; i++) {
-            for (let j = 0; j < items.length; j++) {
-                if (items[i] < items[j]) {
-                    let temp = items[i]
-                    items[i] = items[j]
-                    items[j] = temp
+
+    Simple() {
+        for (let i = 0; i < this.arr.length; i++) {
+            for (let j = 0; j < this.arr.length; j++) {
+                if (this.arr[i] < this.arr[j]) {
+                    let temp = this.arr[i];
+                    this.arr[i] = this.arr[j];
+                    this.arr[j] = temp;
                 }
             }
         }
-        return items
+        return this.arr;
     }
-    async mergeSort(items = []) {
-        if (items.length <= 1) return items
-        const middle = Math.floor(items.length / 2)
-        const left = await this.mergeSort(items.slice(0, middle))
-        const right = await this.mergeSort(items.slice(middle))
-        return this.merge(left, right)
+
+    MergeSort(arr = this.arr) {
+        if (arr.length <= 1) return arr;
+        const middle = Math.floor(arr.length / 2);
+        const left = this.MergeSort(arr.slice(0, middle));
+        const right = this.MergeSort(arr.slice(middle));
+        return this.Merge(left, right);
     }
-    merge(node1, node2) {
-        var result = []
-        while (node1.length > 0 && node2.length > 0) result.push(node1[0] < node2[0]? node1.shift() : node2.shift())
-        return result.concat(node1.length? node1 : node2)
+
+    Merge(node1, node2) {
+        var result = [];
+        while (node1.length > 0 && node2.length > 0) result.push(node1[0] < node2[0] ? node1.shift() : node2.shift());
+        return result.concat(node1.length ? node1 : node2);
     }
 }
-const arr = [0, 43, 3, 2, 3, 4]
-const sort = new Sort()
-const quickSortPromise = sort.quick(arr)
-const selectSortPromise = sort.select(arr)
-const insertSortPromise = sort.insert(arr)
-const bubbleSortPromise = sort.bubble(arr)
-const simpleSortPromise = sort.simple(arr)
-const mergeSortPromise = sort.mergeSort(arr)
-Promise.all([quickSortPromise,selectSortPromise,insertSortPromise,bubbleSortPromise,simpleSortPromise,mergeSortPromise])
-    .then(([quickSort, selectSort, insertSort, bubbleSort, simpleSort, mergeSort]) => {
-        console.log('quick sort: ', quickSort)
-        console.log('select sort: ', selectSort)
-        console.log('insert sort: ', insertSort)
-        console.log('bubble sort: ', bubbleSort)
-        console.log('simple sort: ', simpleSort)
-        console.log('merge sort: ', mergeSort)
-    }).catch(error => {
-        console.error('Error occurred during sorting:', error)
-    })
+
+const arr_problems = new ArrayProblem([0, 43, 3, 2, 3, 4]);
+console.log('quick sort: ', arr_problems.Quick());
+console.log('select sort: ', arr_problems.Select());
+console.log('insert sort: ', arr_problems.Insert());
+console.log('bubble sort: ', arr_problems.Bubble());
+console.log('simple sort: ', arr_problems.Simple());
+console.log('merge sort: ', arr_problems.MergeSort());

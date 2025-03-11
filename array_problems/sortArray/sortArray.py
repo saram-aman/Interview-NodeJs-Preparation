@@ -1,60 +1,71 @@
-class Sort:
-    def quick(self, items):
-        if len(items) < 2:
-            return items
-        pivot = items[0]
-        smaller = [item for item in items if item < pivot]
-        bigger = [item for item in items if item > pivot]
-        equal = [item for item in items if item == pivot]
+class ArrayProblems:
+    def __init__(self, arr):
+        self.arr = arr.copy()
+        
+    def Quick(self, arr=None):
+        if arr is None:
+            arr = self.arr.copy()
+        if len(arr) < 2:
+            return arr
+        pivot = arr[0]
+        smaller = [item for item in arr[1:] if item < pivot]
+        bigger = [item for item in arr[1:] if item > pivot]
+        equal = [item for item in arr if item == pivot]
         return self.quick(smaller) + equal + self.quick(bigger)
 
-    def bubble(self, items):
-        length = len(items)
+    def Bubble(self):
+        arr = self.arr.copy()
+        length = len(arr)
         for passover in range(length):
             for index in range(length - 1):
-                if items[index] > items[index + 1]:
-                    items[index], items[index + 1] = items[index + 1], items[index]
-        return items
+                if arr[index] > arr[index + 1]:
+                    arr[index], arr[index + 1] = arr[index + 1], arr[index]
+        return arr
 
-    def select(self, items):
-        length = len(items)
+    def Select(self):
+        arr = self.arr.copy()
+        length = len(arr)
         for passes in range(length):
             minimum = passes
             for i in range(passes, length):
-                if items[i] < items[minimum]:
+                if arr[i] < arr[minimum]:
                     minimum = i
             if minimum != passes:
-                items[passes], items[minimum] = items[minimum], items[passes]
-        return items
+                arr[passes], arr[minimum] = arr[minimum], arr[passes]
+        return arr
 
-    def insert(self, items):
-        length = len(items)
+    def Insert(self):
+        arr = self.arr.copy()
+        length = len(arr)
         for i in range(1, length):
             index = i - 1
-            temporary = items[i]
-            while index >= 0 and items[index] > temporary:
-                items[index + 1] = items[index]
+            temporary = arr[i]
+            while index >= 0 and arr[index] > temporary:
+                arr[index + 1] = arr[index]
                 index -= 1
-            items[index + 1] = temporary
-        return items
+            arr[index + 1] = temporary
+        return arr
 
-    def simple(self, items):
-        length = len(items)
+    def Simple(self):
+        arr = self.arr.copy()
+        length = len(arr)
         for i in range(length):
             for j in range(length):
-                if items[i] < items[j]:
-                    items[i], items[j] = items[j], items[i]
-        return items
+                if arr[i] < arr[j]:
+                    arr[i], arr[j] = arr[j], arr[i]
+        return arr
 
-    def merge_sort(self, items):
-        if len(items) <= 1:
-            return items
-        middle = len(items) // 2
-        left = self.merge_sort(items[:middle])
-        right = self.merge_sort(items[middle:])
-        return self.merge(left, right)
+    def Merge_sort(self, arr=None):
+        if arr is None:
+            arr = self.arr.copy()
+        if len(arr) <= 1:
+            return arr
+        middle = len(arr) // 2
+        left = self.Merge_sort(arr[:middle])
+        right = self.Merge_sort(arr[middle:])
+        return self.Merge(left, right)
 
-    def merge(self, left, right):
+    def Merge(self, left, right):
         merged = []
         while len(left) > 0 and len(right) > 0:
             if left[0] <= right[0]:
@@ -68,15 +79,14 @@ class Sort:
         return merged
 
 
-arr = [0, 43, 3, 2, 3, 4, 6]
-sort = Sort()
+arr_problems = ArrayProblems([0, 43, 3, 2, 3, 4, 6])
 
-quick_sort = sort.quick(arr)
-select_sort = sort.select(arr)
-insert_sort = sort.insert(arr)
-bubble_sort = sort.bubble(arr)
-simple_sort = sort.simple(arr)
-merge_sort = sort.merge_sort(arr)
+quick_sort = arr_problems.Quick()
+select_sort = arr_problems.Select()
+insert_sort = arr_problems.Insert()
+bubble_sort = arr_problems.Bubble()
+simple_sort = arr_problems.Simple()
+merge_sort = arr_problems.Merge_sort()
 
 print("quick sort:", quick_sort)
 print("select sort:", select_sort)
