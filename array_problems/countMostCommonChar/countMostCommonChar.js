@@ -1,18 +1,25 @@
-class ArrayProblems {
-    async countMostCommonChar(str) {
-        str = str.replace(/[^a-zA-Z]/g, "").toLowerCase()
-        let Obj = {}
-        for (let i = 0; i < str.length; i++) Obj[str.charAt(i)] ? Obj[str.charAt(i)]++ : Obj[str.charAt(i)] = 1
-        let max = 0, maxKey = ''
-        for (let key in Obj) if (Obj[key] > max) max = Obj[key], maxKey = key
-        return maxKey
+class StringProblems {
+    constructor(str) {
+        this.str = str;
+    }
+
+    countMostCommonChar() {
+        this.str = this.str.replace(/[^a-zA-Z]/g, "").toLowerCase();
+        let charCounts = {};
+        for (let i = 0; i < this.str.length; i++) {
+            charCounts[this.str.charAt(i)] = (charCounts[this.str.charAt(i)] || 0) + 1;
+        }
+        let maxCount = 0;
+        let maxChar = '';
+        for (let char in charCounts) {
+            if (charCounts[char] > maxCount) {
+                maxCount = charCounts[char];
+                maxChar = char;
+            }
+        }
+        return maxChar;
     }
 }
-const arrayProblems = new ArrayProblems()
-const mostCommon = arrayProblems.countMostCommonChar("Hello world, this is very basic for developers")
-Promise.all(([mostCommon]))
-    .then(([mostCommonChars]) => {
-        console.log(mostCommonChars)
-    }).catch(error => {
-        console.error('Error occurred counting most common chars:', error)
-    })
+
+const stringProblems = new StringProblems("Hello world, this is very basic for developers");
+console.log(stringProblems.countMostCommonChar());

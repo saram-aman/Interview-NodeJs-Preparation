@@ -1,25 +1,21 @@
 class ArrayProblems {
-    async capitalise_vowels(str) {
-        let vowels = ['a', 'e', 'i', 'o', 'u']
-        let res = ''
-        for(let i = 0; i < str.length; i++) {
-            if(vowels.includes(str[i])){
-                let char = str[i].charCodeAt(0)
-                let upperCase = char - 32
-                res += String.fromCharCode(upperCase)
+    constructor(str) {
+        this.str = str;
+    }
+
+    capitalise_vowels() {
+        let vowels = ['a', 'e', 'i', 'o', 'u'];
+        let res = '';
+        for (let i = 0; i < this.str.length; i++) {
+            if (vowels.includes(this.str[i].toLowerCase())) {
+                res += this.str[i].toUpperCase();
             } else {
-                res += str[i]
+                res += this.str[i].toLowerCase();
             }
         }
-        return res
+        return res;
     }
 }
-const array_problems = new ArrayProblems()
-const capitalised_vowels = array_problems.capitalise_vowels("The equivalent Python code for your JavaScript snippet would be as follows")
-Promise.all(([capitalised_vowels]))
-    .then(([capitalised_vowel]) => {
-        console.log(capitalised_vowel)
-    })
-    .catch((err) => {
-        console.log('Error accrued while capitalising vowels', err)
-    })
+
+const arrayProblems = new ArrayProblems("The equivalent Python code for your JavaScript snippet would be as follows");
+console.log(arrayProblems.capitalise_vowels());

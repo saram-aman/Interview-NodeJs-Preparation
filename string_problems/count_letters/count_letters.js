@@ -1,13 +1,14 @@
 class StringProblems {
-    async count_letters(str){
+    constructor(str) {
+        this.str = str;
+    }
+    count_letters(){
         let countAlphabet = {}
-        for (let char of str.toLowerCase()) {
+        for (let char of this.str.toLowerCase()) {
             if (/[a-z]/.test(char)) countAlphabet[char] = (countAlphabet[char] || 0) + 1
         }
         return countAlphabet
     }
 }
-const string_problems = new StringProblems()
-string_problems.count_letters("command is used for compiling, building, and managing Go programs, not directly executing individual files.")
-    .then(([count_alpha]) => console.log(count_alpha))
-    .catch((err)=> console.error(err))
+const stringProblems = new StringProblems("command is used for compiling, building, and managing Go programs, not directly executing individual files.")
+console.log(stringProblems.count_letters())
