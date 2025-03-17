@@ -1,18 +1,22 @@
-import array from '../array.json'
+const array = [1, [2, [3, [4]], 5]];
+
 class ArrayProblems {
-    async flattenArray(arr) {
-        try {
-            let result = []
-            for(let i = 0; i < arr.length; i++) {
-                Array.isArray(arr[i]) ? result = result.concat(await this.flattenArray(arr[i])) : result.push(arr[i])
+    constructor(arr) {
+        this.arr = arr;
+    }
+
+    flattenArray(arr = this.arr) {
+        let result = [];
+        for (let i = 0; i < arr.length; i++) {
+            if (Array.isArray(arr[i])) {
+                result = result.concat(this.flattenArray(arr[i]));
+            } else {
+                result.push(arr[i]);
             }
-            return result
-        } catch (error) {
-            console.log('Error occurred while flattening the array', error)
         }
+        return result;
     }
 }
-const array_problems = new ArrayProblems()
-array_problems.flattenArray(array)
-    .then(flattenArr => console.log(flattenArr))
-    .catch(err => console.log('The error has occurred in the code: ', err))
+
+const arrayProblems = new ArrayProblems(array);
+console.log(arrayProblems.flattenArray());
