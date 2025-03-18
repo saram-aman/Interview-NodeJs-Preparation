@@ -6,8 +6,8 @@ class ArrayProblems {
 
     AddTwoNumbers() {
         try {
-            const num1 = parseInt(this.arr1.slice().reverse().join(""), 10); 
-            const num2 = parseInt(this.arr2.slice().reverse().join(""), 10); 
+            const num1 = parseInt(this.arr1.reverse().join(""));
+            const num2 = parseInt(this.arr2.reverse().join("")); 
             const sum = num1 + num2;
             return sum.toString().split("").reverse().map(Number);
         } catch (error) {

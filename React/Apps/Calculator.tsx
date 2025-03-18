@@ -21,14 +21,14 @@ class Calculator extends Component {
         };
     }
 
-    inputDigit(digit: string) {
+    async inputDigit(digit: string) {
         const { displayValue } = this.state;
         this.setState({
             displayValue: displayValue === '0' ? digit : displayValue + digit,
         });
     }
 
-    inputDot() {
+    async inputDot() {
         const { displayValue } = this.state;
         if (!displayValue.includes('.')) {
             this.setState({
@@ -37,13 +37,13 @@ class Calculator extends Component {
         }
     }
 
-    clearDisplay() {
+    async clearDisplay() {
         this.setState({
             displayValue: '0',
         });
     }
 
-    handleOperator(nextOperator: string) {
+    async handleOperator(nextOperator: string) {
         const { displayValue, operator, previousValue } = this.state;
         const inputValue = parseFloat(displayValue);
 
@@ -68,7 +68,7 @@ class Calculator extends Component {
         });
     }
 
-    performOperation(left: number, right: number, operator: string) {
+    async performOperation(left: number, right: number, operator: string) {
         switch (operator) {
             case '+':
                 return left + right;

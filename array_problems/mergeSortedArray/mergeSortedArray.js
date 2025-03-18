@@ -7,7 +7,7 @@ class ArrayProblems {
         this.n = n
     }
 
-    mergeSortedArray() {
+    async mergeSortedArray() {
         let i = this.m - 1
         let j = this.n - 1
         let k = this.m + this.n - 1
@@ -17,4 +17,4 @@ class ArrayProblems {
     }
 }
 const arrayProblems = new ArrayProblems(arr1, arg1, arr2, arg2)
-console.log(arrayProblems.mergeSortedArray())
+arrayProblems.mergeSortedArray().then(data => console.log(data))
