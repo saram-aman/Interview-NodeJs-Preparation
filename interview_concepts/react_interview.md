@@ -222,3 +222,256 @@ This document outlines key concepts and common interview questions related to Re
       - Answer: Use form libraries (Formik, React Hook Form) or custom validation logic with state/refs to validate inputs.
     * "What are the benefits of using form libraries like Formik or React Hook Form?"
       - Answer: Simplified form state management, built-in validation, reduced boilerplate, better performance, and easier error handling.
+
+---
+
+## 11. React Performance Optimization
+
+### Overview
+Optimizing React apps involves minimizing unnecessary renders, reducing bundle size, and improving perceived and actual performance.
+
+### Key Concepts
+- **React Profiler:** Analyze component render times and bottlenecks.
+- **Memoization:** React.memo, useMemo, useCallback to avoid unnecessary recalculations.
+- **Virtualization:** Render only visible list items (react-window, react-virtualized).
+- **Code Splitting:** Dynamic imports, React.lazy, Suspense.
+- **Suspense:** Defer rendering until data or code is ready.
+
+### Advanced Topics
+- **Concurrent Rendering:** React 18 features for smoother updates.
+- **Resource Preloading:** Preload critical assets for faster interaction.
+- **Bundle Analysis:** Tools like webpack-bundle-analyzer.
+- **Server-Side Streaming:** Streaming HTML for faster TTI.
+
+### Sample Interview Questions
+- **Q:** How do you profile and optimize a slow React app?
+  - **A:** Use React Profiler, memoization, code splitting, virtualization, and analyze bundle size to identify and fix bottlenecks.
+- **Q:** What is React Suspense and how does it work?
+  - **A:** Suspense lets you defer rendering part of the UI until data or code is loaded, improving perceived performance.
+
+---
+
+## 12. Advanced Hooks
+
+### Overview
+Advanced hooks enable powerful abstractions and custom logic in React apps.
+
+### Key Concepts
+- **Custom Hooks:** Encapsulate reusable logic.
+- **useReducer:** Manage complex state transitions.
+- **useLayoutEffect:** Synchronous effect after DOM mutations.
+- **useImperativeHandle:** Expose imperative methods to parent components.
+- **useRef:** Persist values across renders, access DOM nodes.
+
+### Advanced Topics
+- **Hook Factories:** Generate hooks with custom configuration.
+- **Context + Hooks:** Combine for global state and logic.
+- **Debugging Hooks:** React DevTools, custom hook logs.
+- **Rules of Hooks:** Enforced by linter, critical for reliability.
+
+### Sample Interview Questions
+- **Q:** When would you use useReducer over useState?
+  - **A:** For complex state logic with multiple actions or when state transitions depend on previous state.
+- **Q:** How do you create a custom hook?
+  - **A:** Write a function starting with 'use', encapsulate logic, and return state or functions for components to use.
+
+---
+
+## 13. State Management Ecosystem
+
+### Overview
+Beyond React's built-in state, many libraries offer advanced state management for large or complex apps.
+
+### Key Concepts
+- **Redux Toolkit:** Modern Redux with less boilerplate.
+- **Zustand:** Minimal, hook-based global state.
+- **Recoil:** Atom/selector-based state for React.
+- **Jotai, MobX:** Alternative paradigms for state.
+- **Context API:** For simple global state.
+
+### Advanced Topics
+- **Middleware:** Logging, async actions (redux-thunk, redux-saga).
+- **DevTools:** Redux DevTools, Zustand/Atom inspectors.
+- **Persistence:** Saving state to localStorage, IndexedDB.
+- **Performance:** Avoiding unnecessary re-renders, selectors.
+
+### Sample Interview Questions
+- **Q:** What are the pros and cons of Redux Toolkit vs. Zustand?
+  - **A:** Redux Toolkit is more structured and scalable, Zustand is simpler and more flexible for small/medium apps.
+- **Q:** How do you persist state across sessions?
+  - **A:** Use middleware or hooks to sync state to localStorage or IndexedDB and rehydrate on load.
+
+---
+
+## 14. React Server Components & SSR
+
+### Overview
+Server-side rendering (SSR) and React Server Components (RSC) improve performance, SEO, and user experience.
+
+### Key Concepts
+- **Next.js:** Leading SSR/SSG framework for React.
+- **Hydration:** Attaching event listeners to server-rendered HTML.
+- **Streaming:** Send HTML in chunks for faster TTI.
+- **Server Components:** Fetch data and render on the server, send minimal data to client.
+
+### Advanced Topics
+- **Incremental Static Regeneration:** Update static pages after deployment.
+- **API Routes:** Build backend endpoints in Next.js.
+- **Edge Rendering:** Run code closer to users for lower latency.
+- **Data Fetching Strategies:** getServerSideProps, getStaticProps, useSWR, React Query.
+
+### Sample Interview Questions
+- **Q:** What are the benefits of React Server Components?
+  - **A:** They reduce client bundle size, improve performance, and enable direct server data access without client-side fetching.
+- **Q:** How does hydration work in SSR React apps?
+  - **A:** The client attaches event listeners to pre-rendered HTML, making it interactive without re-rendering the whole UI.
+
+---
+
+## 15. TypeScript with React
+
+### Overview
+TypeScript improves React code quality with static typing, better tooling, and safer refactoring.
+
+### Key Concepts
+- **Props & State Types:** Interface/Type for props, state, context.
+- **Generics:** Reusable typed components and hooks.
+- **Type Inference:** Automatic type deduction for props and state.
+- **Discriminated Unions:** For complex prop types.
+
+### Advanced Topics
+- **Type-Safe Context:** Strongly-typed context values.
+- **Higher-Order Components:** Typing HOCs and render props.
+- **Type Guards:** Narrowing types in components.
+- **Third-Party Types:** @types packages, custom type declarations.
+
+### Sample Interview Questions
+- **Q:** How do you type a generic React component?
+  - **A:** Use generics in the component definition: function MyComponent<T>(props: MyProps<T>) { ... }
+- **Q:** What are the benefits of using TypeScript with React?
+  - **A:** Early error detection, better IDE support, safer refactoring, and improved documentation.
+
+---
+
+## 16. Testing Strategies
+
+### Overview
+Testing ensures React apps are reliable, maintainable, and bug-free.
+
+### Key Concepts
+- **Unit Testing:** Test individual components (Jest, React Testing Library).
+- **Integration Testing:** Test component interactions.
+- **E2E Testing:** Simulate real user flows (Cypress, Playwright).
+- **Mocking:** Simulate APIs, dependencies, and user events.
+
+### Advanced Topics
+- **Test Coverage:** Measure and improve code tested.
+- **Snapshot Testing:** Capture component output for regression.
+- **Test Doubles:** Mocks, stubs, spies for complex scenarios.
+- **CI Integration:** Run tests automatically in pipelines.
+
+### Sample Interview Questions
+- **Q:** How do you test a React component with async data?
+  - **A:** Mock API calls, use async utilities from React Testing Library, and assert on loading, error, and success states.
+- **Q:** What are the benefits of E2E testing?
+  - **A:** It validates real user flows, catches integration bugs, and ensures the app works as expected in the browser.
+
+---
+
+## 17. Accessibility (a11y)
+
+### Overview
+Accessible React apps are usable by everyone, including people with disabilities.
+
+### Key Concepts
+- **ARIA Roles & Attributes:** Enhance semantic meaning for assistive tech.
+- **Keyboard Navigation:** Ensure all features are usable via keyboard.
+- **Screen Reader Support:** Use semantic HTML and ARIA.
+- **Color Contrast:** Meet WCAG standards.
+
+### Advanced Topics
+- **Automated a11y Testing:** axe, Lighthouse, jest-axe.
+- **Focus Management:** Trap focus in modals, manage tab order.
+- **Live Regions:** Announce dynamic content changes.
+- **Accessible Forms:** Labeling, error messages, validation.
+
+### Sample Interview Questions
+- **Q:** How do you make a React app accessible?
+  - **A:** Use semantic HTML, ARIA attributes, keyboard navigation, color contrast, and test with screen readers and a11y tools.
+- **Q:** What is the purpose of ARIA roles?
+  - **A:** They provide additional context to assistive technologies, improving navigation and understanding for users with disabilities.
+
+---
+
+## 18. Security Best Practices
+
+### Overview
+Secure React apps protect users and data from common web vulnerabilities.
+
+### Key Concepts
+- **XSS Protection:** Escape user input, use dangerouslySetInnerHTML with caution.
+- **CSRF:** Use tokens for API requests.
+- **Authentication:** Use secure tokens (JWT), HTTPS, and proper session management.
+- **Dependency Security:** Audit and update packages.
+
+### Advanced Topics
+- **Content Security Policy (CSP):** Restrict resource loading.
+- **Third-Party Scripts:** Sandbox or avoid untrusted code.
+- **Secure Storage:** Avoid storing sensitive data in localStorage.
+- **Static Analysis:** Use tools like Snyk, npm audit.
+
+### Sample Interview Questions
+- **Q:** How do you prevent XSS in React apps?
+  - **A:** Never inject untrusted HTML, escape user input, and use React's built-in escaping for JSX.
+- **Q:** What are best practices for authentication in React?
+  - **A:** Use secure tokens, HTTPS, and avoid storing sensitive data in the browser.
+
+---
+
+## 19. React Native & Cross-Platform
+
+### Overview
+React Native enables building native mobile apps using React, sharing logic across platforms.
+
+### Key Concepts
+- **Core Components:** View, Text, Image, ScrollView, etc.
+- **Platform APIs:** Access device features (camera, geolocation).
+- **Navigation:** React Navigation, deep linking.
+- **Styling:** Flexbox, StyleSheet, platform-specific styles.
+
+### Advanced Topics
+- **Native Modules:** Integrate with native code (Java, Swift, Objective-C).
+- **Performance:** Optimize rendering, memory, and animations.
+- **Cross-Platform Sharing:** Monorepos, code sharing with web (Expo, React Native Web).
+- **Testing:** Detox, Jest for mobile.
+
+### Sample Interview Questions
+- **Q:** How does React Native differ from React for web?
+  - **A:** React Native renders to native components, not HTML, and uses a bridge to communicate with device APIs.
+- **Q:** How do you optimize React Native app performance?
+  - **A:** Use FlatList for large lists, avoid unnecessary renders, optimize images, and use native modules for intensive tasks.
+
+---
+
+## 20. React in Microfrontends & Large-Scale Apps
+
+### Overview
+React is widely used in microfrontend architectures and large-scale enterprise apps.
+
+### Key Concepts
+- **Microfrontends:** Split frontend into independently deployable modules.
+- **Module Federation:** Webpack 5 feature for sharing code at runtime.
+- **Design Systems:** Shared UI components, tokens, and guidelines.
+- **Monorepos:** Manage multiple packages/apps in one repo (Nx, Turborepo).
+
+### Advanced Topics
+- **Cross-Team Collaboration:** Contracts, versioning, shared libraries.
+- **Runtime Integration:** Dynamic loading, communication between microfrontends.
+- **Testing at Scale:** Integration, E2E, contract tests.
+- **Performance:** Lazy loading, code splitting, caching.
+
+### Sample Interview Questions
+- **Q:** What are the benefits of microfrontends?
+  - **A:** Independent deployment, team autonomy, technology diversity, and scalable development for large apps.
+- **Q:** How do you share code between microfrontends?
+  - **A:** Use module federation, shared libraries, and design systems to ensure consistency and reduce duplication.
