@@ -1,15 +1,21 @@
-function lengthOfLongestSubstring(s) {
-    let left = 0
-    let max = 0
-    let result = new Set()
-    for (let r = 0; r < s.length; r++) {
-        while (result.has(s[r])) {
-            result.delete(s[left])
-            left += 1
-        }
-        result.add(s[r])
-        max = Math.max(max, r - left + 1)
+class StringProblems {
+    constructor(str) {
+        this.str = str
     }
-    return max
+    async lengthOfLongestSubstring() {
+        let n = this.str.length;
+        let set = new Set();
+        let ans = 0, i = 0, j = 0;
+        while (i < n && j < n) {
+            if (!set.has(this.str[j])) {
+                set.add(this.str[j++]);
+                ans = Math.max(ans, j - i);
+            } else {
+                set.delete(this.str[i++]);
+            }
+        }
+        return ans;
+    }
 }
-console.log(lengthOfLongestSubstring("pwwkew"))
+const stringProblems = new StringProblems("abcabcbb")
+console.log(stringProblems.lengthOfLongestSubstring())
