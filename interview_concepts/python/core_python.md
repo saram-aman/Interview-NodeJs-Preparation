@@ -952,3 +952,363 @@ Understanding Python internals helps with debugging, optimization, and advanced 
   - **A:** The GIL ensures thread safety in CPython but limits true parallelism for CPU-bound code.
 - **Q:** How does CPython differ from PyPy?
   - **A:** CPython is the reference interpreter, PyPy uses JIT compilation for faster execution, especially for long-running code.
+
+---
+
+## 21. Comprehensions & Generators Advanced
+
+### List, Dict, Set Comprehensions
+- **Nested comprehensions**: Complex data transformations
+- **Conditional comprehensions**: Filtering with if clauses
+- **Performance considerations**: When to use vs loops
+- **Readability trade-offs**: Complex comprehensions vs loops
+
+**Interview Questions:**
+- "When should you use comprehensions vs loops?"
+  - Answer: Use comprehensions for simple transformations and filtering. Use loops for complex logic, side effects, or when readability suffers. Comprehensions are more Pythonic and often faster.
+
+- "How do you create a dictionary comprehension?"
+  - Answer: {key_expr: value_expr for item in iterable}. Can include conditional: {k: v for k, v in items if condition}. More efficient than dict() with loop.
+
+- "What is the difference between generator expressions and list comprehensions?"
+  - Answer: Generator expressions use () and are lazy (memory efficient), list comprehensions use [] and create full list. Use generators for large datasets or when you don't need all values at once.
+
+### Generator Functions
+- **yield keyword**: Create generator functions
+- **Generator protocols**: __iter__ and __next__
+- **Generator pipelines**: Chaining generators
+- **send() and throw()**: Advanced generator control
+- **yield from**: Delegate to subgenerators
+
+**Interview Questions:**
+- "How do generators save memory?"
+  - Answer: Generators produce values on-demand (lazy evaluation), only keeping one value in memory at a time. Lists store all values in memory. Use generators for large datasets or infinite sequences.
+
+- "What is the difference between yield and return?"
+  - Answer: return exits function and returns value once. yield pauses function, returns value, but allows function to resume. Function becomes generator. Can yield multiple values.
+
+- "How do you create an infinite sequence in Python?"
+  - Answer: Use generator function with infinite loop and yield. Example: def count(): n = 0; while True: yield n; n += 1. Memory efficient as values generated on demand.
+
+---
+
+## 22. Decorators Advanced
+
+### Function Decorators
+- **Decorator syntax**: @decorator
+- **Decorator factories**: Decorators with parameters
+- **Multiple decorators**: Stacking decorators
+- **functools.wraps**: Preserving function metadata
+- **Class decorators**: Decorating classes
+
+**Interview Questions:**
+- "How do decorators work in Python?"
+  - Answer: Decorators are functions that take function as argument and return modified function. @decorator is syntactic sugar for func = decorator(func). Used to add functionality without modifying original function.
+
+- "How do you create a decorator that accepts parameters?"
+  - Answer: Create decorator factory (function returning decorator). Outer function takes parameters, inner function is actual decorator. @decorator_factory(arg) syntax.
+
+- "What is functools.wraps and why is it important?"
+  - Answer: functools.wraps copies metadata (name, docstring) from original function to decorated function. Without it, decorated function loses its identity. Important for debugging and documentation.
+
+### Property Decorators
+- **@property**: Getter methods
+- **@property.setter**: Setter methods
+- **@property.deleter**: Deleter methods
+- **Read-only properties**: Properties without setters
+
+**Interview Questions:**
+- "How do you create read-only properties in Python?"
+  - Answer: Use @property decorator without setter. Only getter is defined. Attempts to set will raise AttributeError. Useful for computed attributes.
+
+---
+
+## 23. Context Managers Advanced
+
+### with Statement
+- **Context manager protocol**: __enter__ and __exit__
+- **contextlib module**: Utilities for context managers
+- **contextlib.contextmanager**: Decorator for generators
+- **Multiple context managers**: Using multiple with statements
+- **Nested context managers**: Context managers within context managers
+
+**Interview Questions:**
+- "How do context managers work?"
+  - Answer: Context managers implement __enter__ and __exit__ methods. with statement calls __enter__ before block, __exit__ after (even on exceptions). Ensures cleanup (closing files, releasing resources).
+
+- "How do you create a context manager using a generator?"
+  - Answer: Use @contextlib.contextmanager decorator. Yield in generator function. Code before yield is __enter__, after yield is __exit__. Simpler than class-based context managers.
+
+- "What happens if an exception occurs in a with block?"
+  - Answer: __exit__ is still called. __exit__ receives exception info and can suppress exception by returning True. If returns False/None, exception propagates. Ensures cleanup even on errors.
+
+---
+
+## 24. Metaclasses & Advanced OOP
+
+### Metaclasses Deep Dive
+- **Class creation process**: type() and __new__
+- **Custom metaclasses**: Controlling class creation
+- **Metaclass inheritance**: Metaclass of parent classes
+- **Real-world use cases**: ORMs, API frameworks, validation
+
+**Interview Questions:**
+- "What is a metaclass and when would you use one?"
+  - Answer: Metaclass is class of classes. Controls class creation. Use for frameworks (Django models), validation, auto-registration, or modifying class attributes. Advanced feature, use sparingly.
+
+- "How does Python create classes?"
+  - Answer: Python calls type() (or metaclass) with class name, bases, and namespace. Metaclass __new__ creates class object. Can customize by defining custom metaclass.
+
+### Descriptors
+- **Descriptor protocol**: __get__, __set__, __delete__
+- **Property descriptors**: How @property works
+- **Data vs non-data descriptors**: Difference in lookup priority
+- **Descriptor instances**: Descriptors as class attributes
+
+**Interview Questions:**
+- "How do descriptors work?"
+  - Answer: Descriptors define __get__, __set__, __delete__ methods. When accessed on instance, Python calls descriptor methods. Properties, static methods, class methods use descriptors.
+
+- "What is the difference between data and non-data descriptors?"
+  - Answer: Data descriptors define __set__ or __delete__, non-data only __get__. Data descriptors override instance dictionary, non-data don't. Property is data descriptor, staticmethod is non-data.
+
+---
+
+## 25. Iterators & Iterables Advanced
+
+### Iterator Protocol
+- **__iter__ and __next__**: Iterator protocol
+- **StopIteration exception**: Signaling end of iteration
+- **Iterable vs iterator**: Difference and conversion
+- **itertools module**: Advanced iteration tools
+- **Custom iterators**: Creating custom iterable classes
+
+**Interview Questions:**
+- "What is the difference between iterable and iterator?"
+  - Answer: Iterable implements __iter__ (returns iterator), iterator implements __iter__ and __next__. All iterators are iterables. iter() function gets iterator from iterable.
+
+- "How do you create a custom iterator?"
+  - Answer: Class with __iter__ (returns self) and __next__ methods. __next__ returns next value or raises StopIteration. Can also use generator function which is simpler.
+
+- "What is itertools and what useful functions does it provide?"
+  - Answer: itertools provides iterator building blocks: chain (combine iterables), cycle (infinite cycle), combinations/permutations, groupby (group consecutive elements), islice (slice iterator).
+
+---
+
+## 26. Comprehensions & Functional Programming
+
+### Functional Programming Tools
+- **map, filter, reduce**: Functional transformations
+- **functools module**: Higher-order functions
+- **operator module**: Function equivalents of operators
+- **itertools**: Functional iteration tools
+- **Lambda functions**: Anonymous functions
+
+**Interview Questions:**
+- "When should you use map/filter vs list comprehensions?"
+  - Answer: List comprehensions are more Pythonic and readable. Use map/filter for functional style or when you need function references. Comprehensions are generally preferred in Python.
+
+- "What is reduce and when would you use it?"
+  - Answer: reduce applies function cumulatively to items, reducing to single value. Use for aggregations (sum, product, max). Python 3 moved to functools module. Often sum() or max() is clearer.
+
+- "What are the limitations of lambda functions?"
+  - Answer: Can only contain expressions (no statements), single expression, no annotations, limited readability. Use for simple functions, prefer def for complex logic.
+
+---
+
+## 27. Data Structures Advanced
+
+### collections Module Deep Dive
+- **defaultdict**: Dictionary with default factory
+- **Counter**: Count hashable objects
+- **OrderedDict**: Dictionary that remembers insertion order
+- **namedtuple**: Tuple with named fields
+- **deque**: Double-ended queue
+- **ChainMap**: Multiple dictionaries as single mapping
+
+**Interview Questions:**
+- "When would you use defaultdict vs regular dict?"
+  - Answer: defaultdict provides default value for missing keys. Use when you need to accumulate values (lists, counts) without checking key existence. Regular dict requires if key not in dict checks.
+
+- "How does Counter work and when is it useful?"
+  - Answer: Counter counts occurrences of elements. Subclass of dict. Useful for counting items, finding most common elements, set-like operations (union, intersection). Very efficient for counting.
+
+- "What is the difference between list and deque?"
+  - Answer: deque is optimized for append/pop at both ends (O(1)), list is O(n) for operations at beginning. Use deque for queues/stacks, list for random access and slicing.
+
+### Advanced List Operations
+- **List slicing**: Advanced slicing patterns
+- **List methods**: extend, insert, remove, pop, clear
+- **List performance**: Time complexity of operations
+- **List vs tuple**: When to use each
+
+---
+
+## 28. Exception Handling Advanced
+
+### Exception Hierarchy
+- **BaseException vs Exception**: Difference
+- **Built-in exceptions**: Common exception types
+- **Custom exceptions**: Creating exception hierarchies
+- **Exception chaining**: from keyword for exception context
+- **Suppressing exceptions**: Suppress context manager
+
+**Interview Questions:**
+- "What is the exception hierarchy in Python?"
+  - Answer: BaseException (base class, includes SystemExit, KeyboardInterrupt), Exception (most exceptions), then specific exceptions (ValueError, TypeError, etc.). Catch Exception, not BaseException.
+
+- "How do you create custom exceptions?"
+  - Answer: Create class inheriting from Exception (or specific exception type). Add __init__ for custom parameters. Can create hierarchy by inheriting from custom exceptions. Use descriptive names.
+
+- "What is exception chaining and how does it work?"
+  - Answer: Use 'raise NewException from original_exception' to chain exceptions. Preserves original exception context. 'from None' suppresses original exception. Useful for wrapping exceptions.
+
+### Exception Best Practices
+- **Catching specific exceptions**: Avoid bare except
+- **Exception handling patterns**: Try-except-else-finally
+- **Exception logging**: Logging exceptions properly
+- **Resource cleanup**: Using finally or context managers
+
+---
+
+## 29. Modules & Packages Advanced
+
+### Import System
+- **import mechanisms**: How imports work
+- **sys.path**: Module search path
+- **__init__.py**: Package initialization
+- **Relative vs absolute imports**: When to use each
+- **Import hooks**: Customizing import behavior
+- **__import__ function**: Dynamic imports
+
+**Interview Questions:**
+- "How does Python find modules?"
+  - Answer: Checks sys.path (includes current directory, PYTHONPATH, site-packages). Searches directories in order. Can modify sys.path or use PYTHONPATH environment variable.
+
+- "What is the difference between import and from import?"
+  - Answer: import loads module, access with module.name. from import loads module and binds names to current namespace. from import can cause name collisions, import is clearer.
+
+- "What is __init__.py used for?"
+  - Answer: Marks directory as package (Python 3.3+ can omit, but recommended). Runs on package import. Use for package initialization, defining __all__, or importing submodules.
+
+### Package Structure
+- **Package organization**: Structuring large packages
+- **Namespace packages**: Packages without __init__.py
+- **Cyclic imports**: Problems and solutions
+- **Circular dependencies**: Breaking circular imports
+
+---
+
+## 30. Comprehensions & Performance
+
+### Performance Optimization
+- **Profiling tools**: cProfile, line_profiler
+- **Time complexity**: Understanding Big-O
+- **Space complexity**: Memory usage analysis
+- **Caching**: functools.lru_cache
+- **Optimization techniques**: When and how to optimize
+
+**Interview Questions:**
+- "How do you profile Python code?"
+  - Answer: Use cProfile for function-level profiling, line_profiler for line-by-line, memory_profiler for memory usage. Identify bottlenecks before optimizing. Use timeit for micro-benchmarks.
+
+- "What is lru_cache and when would you use it?"
+  - Answer: functools.lru_cache memoizes function results. Stores most recent calls (LRU eviction). Use for expensive, pure functions with repeated arguments. Can specify maxsize.
+
+- "What are some common performance pitfalls in Python?"
+  - Answer: String concatenation in loops (use join), creating unnecessary lists (use generators), not using built-in functions, premature optimization. Profile first, optimize bottlenecks.
+
+---
+
+## 31. Advanced Python Features
+
+### Walrus Operator (:=)
+- **Assignment expressions**: Python 3.8+
+- **Use cases**: While loops, list comprehensions
+- **Benefits and readability**: When to use
+
+### Pattern Matching (match/case)
+- **Structural pattern matching**: Python 3.10+
+- **Match statements**: Alternative to if-elif-else
+- **Pattern types**: Literal, capture, wildcard, sequence
+- **Guard clauses**: Conditional matching
+
+**Interview Questions:**
+- "What is the walrus operator and when would you use it?"
+  - Answer: := assigns and returns value in expression. Use in while loops: while (line := file.readline()):. Avoid overuse, can harm readability. Useful for avoiding repeated calls.
+
+- "How does pattern matching work in Python 3.10+?"
+  - Answer: match/case provides structural pattern matching. More powerful than if-elif with pattern matching. Can match values, types, sequences, guards. Alternative to switch-like constructs.
+
+---
+
+## 32. Comprehensive Python Interview Questions Bank
+
+### Fundamentals
+1. **What are the key features of Python?**
+   - Answer: Simple syntax, dynamically typed, interpreted, object-oriented, high-level, large standard library, cross-platform, extensive third-party packages. Emphasizes readability (PEP 8).
+
+2. **What is the difference between Python 2 and Python 3?**
+   - Answer: Python 3 is current version (Python 2 ended 2020). Key differences: print is function, integer division, Unicode strings by default, improved exception handling. Python 3 is not backward compatible.
+
+3. **How is Python interpreted?**
+   - Answer: Python compiles source to bytecode (.pyc files), then Python VM (CPython) executes bytecode. Not compiled to machine code (unlike C). Can see bytecode with dis module.
+
+4. **What is PEP 8?**
+   - Answer: Python Enhancement Proposal 8 is style guide for Python code. Covers naming, indentation, line length, imports, etc. Promotes readable, consistent code. Tools like flake8 enforce it.
+
+5. **What are Python's scoping rules (LEGB)?**
+   - Answer: LEGB: Local, Enclosing (non-local), Global, Built-in. Python searches names in this order. Use global/nonlocal keywords to modify outer scope variables.
+
+### Data Types & Structures
+6. **What is the difference between mutable and immutable types?**
+   - Answer: Mutable (list, dict, set) can be changed after creation. Immutable (int, str, tuple, frozenset) cannot. Immutable types are hashable (can be dict keys), mutable are not (except frozenset).
+
+7. **How do you copy objects in Python?**
+   - Answer: Shallow copy (copy.copy()) copies object but references to nested objects. Deep copy (copy.deepcopy()) recursively copies nested objects. Assignment creates reference, not copy.
+
+8. **What is the difference between == and is?**
+   - Answer: == compares values, is compares object identity (same object in memory). Use == for value comparison, is for None/True/False or checking same object. is is faster for identity checks.
+
+9. **How does string formatting work in Python?**
+   - Answer: % formatting (old), .format() method, f-strings (Python 3.6+, preferred). f-strings are fastest and most readable: f"Hello {name}". Support expressions and formatting specifiers.
+
+10. **What are Python's built-in data structures and their use cases?**
+    - Answer: list (ordered, mutable), tuple (ordered, immutable), dict (key-value, mutable), set (unordered, unique, mutable), frozenset (immutable set). Choose based on requirements (mutation, ordering, uniqueness).
+
+### Functions & OOP
+11. **What are *args and **kwargs?**
+    - Answer: *args collects positional arguments as tuple, **kwargs collects keyword arguments as dict. Use for variable-length arguments. Can combine: def func(*args, **kwargs).
+
+12. **What is the difference between a method and a function?**
+    - Answer: Method is function defined in class, receives self as first parameter. Function is standalone. Methods called on instances, functions called directly. Static methods don't receive self.
+
+13. **How does inheritance work in Python?**
+    - Answer: Class inherits from parent using class Child(Parent). Child gets all attributes/methods. Can override methods. Use super() to call parent methods. Supports multiple inheritance (MRO determines order).
+
+14. **What is Method Resolution Order (MRO)?**
+    - Answer: MRO determines method lookup order in inheritance. C3 linearization algorithm. Use class.__mro__ to see order. Ensures consistent method resolution, handles diamond problem in multiple inheritance.
+
+15. **What are abstract base classes (ABC)?**
+    - Answer: ABCs define interface that subclasses must implement. Use abc module, @abstractmethod decorator. Cannot instantiate ABC directly. Ensures subclasses implement required methods. Useful for enforcing contracts.
+
+### Advanced Topics
+16. **How does garbage collection work in Python?**
+    - Answer: Reference counting (primary) frees objects when count reaches zero. Cycle detector handles circular references. gc module controls garbage collection. Generally automatic, but can manually trigger.
+
+17. **What is a closure?**
+    - Answer: Closure is nested function that captures variables from enclosing scope. Function remembers environment even after outer function returns. Useful for decorators, function factories, maintaining state.
+
+18. **What is a decorator and how does it work?**
+    - Answer: Decorator is function that takes function and returns modified function. @decorator syntax is syntactic sugar. Used to add functionality (logging, timing, caching) without modifying original function.
+
+19. **What is the difference between __str__ and __repr__?**
+    - Answer: __str__ is user-friendly representation (str() function, print). __repr__ is unambiguous representation (repr() function, debugging). __repr__ should ideally be valid Python code to recreate object.
+
+20. **How do you handle large datasets in Python?**
+    - Answer: Use generators for memory efficiency, process in chunks, use databases for persistent storage, consider NumPy/pandas for numerical data, use streaming for I/O, avoid loading entire dataset into memory.
+
+---
+
+This comprehensive guide covers all major Python topics you'll encounter in interviews. Practice coding these concepts, understand the underlying principles, and be ready to explain trade-offs and design decisions.
+

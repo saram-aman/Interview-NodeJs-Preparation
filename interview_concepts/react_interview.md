@@ -597,3 +597,311 @@ React 18 introduced concurrent rendering features to keep apps responsive during
    - **Answer:** Use React.lazy with Suspense, wrap route components in lazy imports, prefetch critical routes, and handle fallback UI.
 
 This extended Q&A helps cover the broad spectrum of topics senior-level interviews frequently explore.
+
+---
+
+## 26. React Hooks Advanced Deep Dive
+
+### useState Advanced Patterns
+- **Functional updates**: Using updater functions
+- **Lazy initialization**: Initializing state with functions
+- **State batching**: How React batches state updates
+- **State updates and re-renders**: When components re-render
+
+**Interview Questions:**
+- "How does useState work under the hood?"
+  - Answer: useState returns state value and setter function. State persists across re-renders. Setter triggers re-render if value changes. React uses linked list to track hooks. Must be called in same order.
+
+- "When should you use functional updates with useState?"
+  - Answer: When new state depends on previous state: setCount(prev => prev + 1). Prevents stale closures, ensures correct updates based on current state. Required when updating based on previous value.
+
+- "How do you initialize state with a function in useState?"
+  - Answer: Pass function to useState: useState(() => expensiveComputation()). Function runs only on initial render, not on re-renders. Useful for expensive initial state calculations.
+
+### useEffect Advanced Usage
+- **Effect cleanup**: Cleaning up side effects
+- **Dependency arrays**: When and how to specify dependencies
+- **Effect timing**: When effects run in render cycle
+- **Conditional effects**: Running effects conditionally
+
+**Interview Questions:**
+- "When does useEffect cleanup function run?"
+  - Answer: Cleanup runs before effect runs again (if dependencies changed), and when component unmounts. Ensures no memory leaks from subscriptions, timers, or event listeners.
+
+- "What happens if you omit the dependency array in useEffect?"
+  - Answer: Effect runs after every render. Usually not desired. Empty array [] runs once on mount. Missing dependencies can cause bugs and stale closures. ESLint warns about missing dependencies.
+
+- "How do you handle async operations in useEffect?"
+  - Answer: Define async function inside effect, call it. Or use .then() with promises. Cleanup function can cancel requests (AbortController). Cannot make useEffect callback async directly (returns cleanup, not promise).
+
+### useMemo and useCallback Optimization
+- **When to use useMemo**: Memoizing expensive computations
+- **When to use useCallback**: Memoizing functions
+- **Common mistakes**: Overusing memoization
+- **Performance impact**: Measuring actual benefits
+
+**Interview Questions:**
+- "When should you use useMemo vs useCallback?"
+  - Answer: useMemo memoizes computed values, useCallback memoizes functions. Use when passing to child components (prevent unnecessary re-renders) or expensive computations. Don't overuse - optimization has cost.
+
+- "What are the performance implications of useMemo?"
+  - Answer: useMemo has overhead (comparison, storage). Only use for expensive computations or when preventing unnecessary re-renders. Premature optimization can hurt performance. Profile before optimizing.
+
+### Custom Hooks Patterns
+- **Extracting logic**: Moving logic to custom hooks
+- **Composing hooks**: Combining multiple hooks
+- **Hook naming**: use prefix convention
+- **Reusable patterns**: Common custom hook patterns
+
+**Interview Questions:**
+- "How do you create a custom hook?"
+  - Answer: Create function starting with 'use', use other hooks inside, return values or functions. Encapsulates stateful logic. Can use state, effects, other hooks. Reusable across components.
+
+- "What are some common custom hook patterns?"
+  - Answer: useLocalStorage (sync with localStorage), useFetch (data fetching), useDebounce (debounce values), useMediaQuery (responsive design), useClickOutside (detect outside clicks).
+
+---
+
+## 27. State Management Advanced
+
+### Context API Advanced
+- **Context performance**: Preventing unnecessary re-renders
+- **Multiple contexts**: Using multiple contexts
+- **Context composition**: Combining contexts
+- **Context patterns**: Common context patterns
+
+**Interview Questions:**
+- "How do you prevent unnecessary re-renders with Context?"
+  - Answer: Split contexts by update frequency, use memo for consumers, create multiple contexts instead of single large context. Components re-render when context value changes (by reference).
+
+- "What is the difference between Context and Redux?"
+  - Answer: Context is built-in, simple API, good for shared state. Redux has devtools, middleware, time-travel debugging, better for complex state. Context can cause performance issues if overused.
+
+### Redux Toolkit Advanced
+- **createSlice**: Simplified reducer creation
+- **createAsyncThunk**: Handling async actions
+- **RTK Query**: Data fetching and caching
+- **Redux patterns**: Common Redux patterns
+
+**Interview Questions:**
+- "How does Redux Toolkit simplify Redux?"
+  - Answer: createSlice combines actions/reducers, Immer for immutable updates, configureStore with good defaults, createAsyncThunk for async logic. Reduces boilerplate significantly.
+
+- "What is RTK Query and when would you use it?"
+  - Answer: RTK Query is data fetching/caching solution for Redux. Handles caching, refetching, mutations. Use when you need Redux state with API data. Alternative to React Query with Redux integration.
+
+---
+
+## 28. React Performance Optimization Advanced
+
+### React.memo Deep Dive
+- **Memoization strategy**: When to use React.memo
+- **Custom comparison**: Using comparison functions
+- **Performance trade-offs**: Cost of memoization
+- **Common patterns**: Memoizing components
+
+**Interview Questions:**
+- "How does React.memo work?"
+  - Answer: React.memo memoizes component, only re-renders if props change (shallow comparison). Can provide custom comparison function. Prevents unnecessary re-renders when props unchanged.
+
+- "When should you use React.memo?"
+  - Answer: Use for expensive components, components that re-render frequently with same props, or leaf components in large trees. Not needed for all components - has overhead. Profile first.
+
+### Code Splitting Advanced
+- **Route-based splitting**: Splitting by routes
+- **Component-based splitting**: Splitting individual components
+- **Dynamic imports**: Using dynamic import()
+- **Prefetching**: Preloading split code
+
+**Interview Questions:**
+- "How do you implement code splitting in React?"
+  - Answer: Use React.lazy() with dynamic import(), wrap with Suspense, provide fallback UI. Split by routes or large components. Reduces initial bundle size, improves load time.
+
+- "What is the difference between code splitting and lazy loading?"
+  - Answer: Code splitting divides code into chunks. Lazy loading loads code on demand. React.lazy implements lazy loading via code splitting. Can also manually split with dynamic imports.
+
+### Virtualization Advanced
+- **react-window vs react-virtualized**: Comparison
+- **Virtualization strategies**: Fixed vs variable heights
+- **Performance considerations**: When to virtualize
+- **Implementation patterns**: Common virtualization patterns
+
+**Interview Questions:**
+- "When should you use virtualization for lists?"
+  - Answer: Use for large lists (hundreds/thousands of items). Only renders visible items, improves performance. Not needed for small lists - has overhead. Use react-window or react-virtualized.
+
+---
+
+## 29. Testing Advanced
+
+### Testing Strategies
+- **Unit testing**: Testing components in isolation
+- **Integration testing**: Testing component interactions
+- **E2E testing**: Testing user flows
+- **Visual regression**: Testing UI changes
+
+**Interview Questions:**
+- "What is the difference between unit and integration tests in React?"
+  - Answer: Unit tests test components in isolation (mocked dependencies). Integration tests test multiple components together. Use both - unit for logic, integration for user interactions.
+
+- "How do you test custom hooks?"
+  - Answer: Use @testing-library/react-hooks or renderHook from React Testing Library. Test hook behavior, state changes, effects. Mock dependencies if needed. Test in isolation.
+
+### Mocking and Stubbing
+- **Mocking modules**: jest.mock()
+- **Mocking functions**: jest.fn()
+- **Mocking APIs**: MSW, nock
+- **Mocking contexts**: Mocking Context providers
+
+**Interview Questions:**
+- "How do you mock API calls in React tests?"
+  - Answer: Use MSW (Mock Service Worker) for realistic API mocking, or nock for fetch mocking. Mock at test level, not component level. Use MSW for better integration tests.
+
+---
+
+## 30. React Patterns & Best Practices
+
+### Component Composition Patterns
+- **Container/Presentational**: Separating logic and presentation
+- **Compound components**: Related components working together
+- **Render props**: Sharing code via render prop
+- **Higher-order components**: Reusing component logic
+
+**Interview Questions:**
+- "What is the container/presentational pattern?"
+  - Answer: Container components handle logic/state, presentational components handle UI. Separates concerns, makes components reusable and testable. Hooks make this pattern less necessary.
+
+- "What are compound components?"
+  - Answer: Related components that work together (e.g., Select and Option). Share implicit state via Context. Provide flexible, composable API. Example: Tabs, Tab, TabPanel.
+
+### Data Fetching Patterns
+- **Fetch on mount**: useEffect for initial data
+- **Fetch on update**: Fetching when dependencies change
+- **Optimistic updates**: Updating UI before server response
+- **Error boundaries**: Handling fetch errors
+
+**Interview Questions:**
+- "How do you handle data fetching in React?"
+  - Answer: Use useEffect for lifecycle-based fetching, React Query/SWR for caching/synchronization, or fetch in event handlers. Handle loading/error states. Clean up requests on unmount.
+
+- "What are optimistic updates?"
+  - Answer: Update UI immediately, then sync with server. If server fails, rollback. Improves perceived performance. Use for mutations (likes, follows) where failure is acceptable.
+
+---
+
+## 31. React Ecosystem & Libraries
+
+### Popular React Libraries
+- **React Router**: Client-side routing
+- **React Query/TanStack Query**: Data fetching
+- **Formik/React Hook Form**: Form management
+- **Styled Components/Emotion**: CSS-in-JS
+- **React Spring/Framer Motion**: Animations
+
+**Interview Questions:**
+- "When would you use React Query vs useEffect for data fetching?"
+  - Answer: React Query handles caching, refetching, background updates, error handling automatically. useEffect requires manual implementation. Use React Query for API data, useEffect for simple cases.
+
+- "What are the differences between Formik and React Hook Form?"
+  - Answer: Formik is more feature-rich, React Hook Form is more performant (less re-renders). React Hook Form uses uncontrolled components, Formik uses controlled. Choose based on needs.
+
+### Build Tools & Tooling
+- **Create React App**: Boilerplate and tooling
+- **Next.js**: React framework with SSR
+- **Vite**: Fast build tool
+- **Webpack**: Module bundler
+- **ESLint/Prettier**: Code quality tools
+
+**Interview Questions:**
+- "What are the differences between Create React App and Next.js?"
+  - Answer: CRA is SPA toolchain, Next.js is full framework with SSR, routing, API routes. Next.js better for SEO, performance, production apps. CRA simpler for learning/small projects.
+
+---
+
+## 32. Comprehensive React Interview Questions Bank
+
+### Fundamentals
+1. **What is React and what problems does it solve?**
+   - Answer: React is UI library for building interactive user interfaces. Solves DOM manipulation complexity with component-based architecture, Virtual DOM for performance, declarative syntax, and reusable components.
+
+2. **What are the core principles of React?**
+   - Answer: Component-based architecture, declarative UI, unidirectional data flow, Virtual DOM for performance, composition over inheritance, learn once write anywhere (web, native, etc.).
+
+3. **What is JSX and how does it work?**
+   - Answer: JSX is JavaScript syntax extension for writing HTML-like code in JavaScript. Transpiled to React.createElement() calls. Must have single root element (or Fragment), use className instead of class.
+
+4. **What is the Virtual DOM and why is it used?**
+   - Answer: Virtual DOM is JavaScript representation of real DOM. React compares Virtual DOM with previous version (diffing), updates only changed nodes. Improves performance by batching updates and minimizing DOM manipulation.
+
+5. **How does React rendering work?**
+   - Answer: React creates Virtual DOM tree, compares with previous tree (reconciliation), identifies changes (diffing algorithm), updates only changed DOM nodes. Batches updates for performance.
+
+### Components & Props
+6. **What are React components?**
+   - Answer: Components are reusable pieces of UI. Can be functions (functional components) or classes (class components). Return JSX. Functional components are preferred in modern React.
+
+7. **What are props and how do they work?**
+   - Answer: Props (properties) are data passed from parent to child components. Read-only (immutable). Access via function parameters in functional components or this.props in class components.
+
+8. **What is the difference between props and state?**
+   - Answer: Props are passed from parent (immutable), state is internal to component (mutable). Props change triggers re-render from parent, state change triggers re-render of component itself.
+
+9. **What are keys in React and why are they important?**
+   - Answer: Keys help React identify which items changed/added/removed in lists. Should be unique, stable IDs. Using index as key can cause bugs when list order changes. Keys optimize reconciliation.
+
+10. **What is the children prop?**
+    - Answer: children is special prop containing content between component tags. Enables component composition and nesting. Can be accessed via props.children or destructured.
+
+### Hooks
+11. **What are React Hooks and why were they introduced?**
+    - Answer: Hooks let you use state and other React features in functional components. Introduced to reuse stateful logic, simplify components, and avoid class component complexity.
+
+12. **What are the Rules of Hooks?**
+    - Answer: Only call hooks at top level (not in loops/conditions), only call from React functions (components or custom hooks). Ensures hooks are called in same order every render.
+
+13. **How does useState work?**
+    - Answer: useState returns state value and setter function. State persists across re-renders. Calling setter triggers re-render if value changes. Can initialize with value or function.
+
+14. **How does useEffect work?**
+    - Answer: useEffect runs side effects after render. Takes function and optional dependency array. Runs after every render if no deps, once on mount if empty array, when deps change if specified.
+
+15. **What is the difference between useEffect and useLayoutEffect?**
+    - Answer: useEffect runs after paint (asynchronous), useLayoutEffect runs synchronously before paint. Use useLayoutEffect for DOM measurements or when you need synchronous updates.
+
+### State Management
+16. **What are different ways to manage state in React?**
+    - Answer: Local state (useState), Context API (shared state), Redux/Zustand (global state), URL state (routing), server state (React Query). Choose based on scope and needs.
+
+17. **When would you use Context API vs Redux?**
+    - Answer: Context for simple shared state, small apps, or theme/language. Redux for complex state, large apps, time-travel debugging, middleware needs. Context can cause performance issues if overused.
+
+18. **How does Context API work?**
+    - Answer: Context provides way to pass data through component tree without prop drilling. Create context, provide value via Provider, consume via useContext hook. All consumers re-render when value changes.
+
+### Performance
+19. **How do you optimize React application performance?**
+    - Answer: Use React.memo for components, useMemo/useCallback for values/functions, code splitting, virtualization for lists, avoid unnecessary re-renders, optimize images, use production build.
+
+20. **What is the difference between useMemo and useCallback?**
+    - Answer: useMemo memoizes computed values, useCallback memoizes functions. Both prevent unnecessary recalculations/re-renders. Use when passing to child components or expensive computations.
+
+21. **When should you use React.memo?**
+    - Answer: Use for expensive components, components that re-render frequently with same props, or leaf components. Not needed for all components - has overhead. Profile before optimizing.
+
+### Advanced Topics
+22. **What is Server-Side Rendering (SSR) and why use it?**
+    - Answer: SSR renders React on server, sends HTML to client. Benefits: SEO, faster initial load, works without JavaScript. Use Next.js or custom SSR setup. Trade-off: server load, complexity.
+
+23. **What is code splitting and how do you implement it?**
+    - Answer: Code splitting divides code into smaller chunks loaded on demand. Use React.lazy() with dynamic import(), wrap with Suspense. Reduces initial bundle size, improves load time.
+
+24. **How do you handle errors in React applications?**
+    - Answer: Error boundaries for component errors (class components or libraries), try-catch for event handlers/effects, error states in components, error logging services (Sentry). Error boundaries catch errors in tree below.
+
+25. **What are Higher-Order Components (HOCs)?**
+    - Answer: HOC is function that takes component and returns enhanced component. Used to share logic between components. Less common with hooks. Example: withRouter, connect (Redux).
+
+---
+
+This comprehensive guide covers all major React topics you'll encounter in interviews. Practice building projects with these concepts, understand the underlying principles, and be ready to discuss trade-offs and design decisions.
+

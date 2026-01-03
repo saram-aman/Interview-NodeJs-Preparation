@@ -209,6 +209,16 @@ This document outlines key concepts and common interview questions related to No
   - Answer: Use try-catch for sync operations, error-first callbacks or catch blocks with promises for async operations.
 
 * "How do you efficiently read large files?"
+  - Answer: Use fs.createReadStream() to read files in chunks, pipe to writable streams, set highWaterMark for buffer size. Avoid fs.readFile() for large files as it loads entire file into memory.
+  
+* "What is the difference between fs.promises and callback-based fs methods?"
+  - Answer: fs.promises provides promise-based API using async/await, while callback-based methods use error-first callbacks. fs.promises is cleaner and more modern.
+  
+* "How do you watch for file changes in Node.js?"
+  - Answer: Use fs.watch() or fs.watchFile(). fs.watch() uses OS native events and is more efficient. fs.watchFile() polls files and is less efficient but more compatible.
+  
+* "How do you copy or move files efficiently?"
+  - Answer: Use streams for large files (createReadStream + createWriteStream), or fs.copyFileSync/copyFile for small files. For moving, use fs.rename() which is atomic.
 
 ## 8. Networking (http, https, net) Modules
 
@@ -233,6 +243,22 @@ This document outlines key concepts and common interview questions related to No
   - Answer: Low-level networking interface for custom protocols. Create with net.createServer() and net.connect() for client-server communication.
 
 * "How do you handle different HTTP methods?"
+  - Answer: Check req.method property, use switch statement or if-else. In Express, use app.get(), app.post(), app.put(), app.delete() methods. Can also use app.all() for all methods.
+  
+* "How do you parse request bodies in Node.js?"
+  - Answer: For JSON: use body-parser middleware or express.json(). For form data: body-parser.urlencoded(). For raw data: req.on('data') events. Always validate and sanitize input.
+  
+* "What is HTTP keep-alive and how does Node.js handle it?"
+  - Answer: Keep-alive reuses TCP connections for multiple requests. Node.js http module supports it by default. Use agent: {keepAlive: true} in http.request() for client connections.
+  
+* "How do you handle file uploads in Node.js?"
+  - Answer: Use multiparty, formidable, or multer middleware. Stream uploads to disk or cloud storage. Validate file types and sizes. Handle progress events for large files.
+  
+* "What are HTTP status codes and when to use them?"
+  - Answer: 200 (OK), 201 (Created), 400 (Bad Request), 401 (Unauthorized), 403 (Forbidden), 404 (Not Found), 500 (Server Error). Use appropriate codes to indicate request/response status.
+  
+* "How do you implement request timeouts in Node.js?"
+  - Answer: Use req.setTimeout() or socket.setTimeout() on server. For client requests, use AbortController or timeout in http.request options. Handle timeout errors appropriately.
 
 ## 9. Express.js (or other frameworks)
 
@@ -257,6 +283,31 @@ This document outlines key concepts and common interview questions related to No
   - Answer: Use app.get(), post(), etc., with path and callback. Support parameters, query strings, and multiple handlers.
 
 * "What are RESTful APIs?"
+  - Answer: REST (Representational State Transfer) APIs use HTTP methods (GET, POST, PUT, DELETE) to perform operations on resources. Stateless, cacheable, uniform interface. URLs represent resources, not actions.
+  
+* "How do you implement authentication in Express.js?"
+  - Answer: Use passport.js, JWT tokens, session-based auth, or OAuth. Store tokens securely (httpOnly cookies), validate on protected routes, use middleware to check authentication.
+  
+* "What is middleware in Express and how does it work?"
+  - Answer: Middleware functions execute between request and response. They can modify req/res objects, end request-response cycle, call next() to pass control. Execute in order defined.
+  
+* "How do you handle routing in Express.js?"
+  - Answer: Define routes with app.METHOD(path, handler). Use router for modular routing. Support route parameters, query strings, and route middleware. Use app.use() for middleware.
+  
+* "What is the difference between app.use() and app.get() in Express?"
+  - Answer: app.use() applies middleware to all HTTP methods and paths matching the pattern. app.get() only handles GET requests for specific path. app.use() is for middleware, app.get() for routes.
+  
+* "How do you serve static files in Express?"
+  - Answer: Use express.static() middleware with directory path. Can serve multiple static directories. Configure caching headers and security for static assets.
+  
+* "How do you implement API versioning in Express?"
+  - Answer: Use URL path versioning (/api/v1/users), header versioning, or query parameter versioning. Use router for each version, maintain backward compatibility when possible.
+  
+* "What are template engines and when to use them?"
+  - Answer: Template engines (EJS, Handlebars, Pug) render HTML with dynamic data. Use for server-side rendering. For APIs, use JSON responses instead.
+  
+* "How do you implement rate limiting in Express?"
+  - Answer: Use express-rate-limit middleware. Configure max requests per window, store limits in memory or Redis. Apply different limits for different routes.
 
 ## 10. Database Interaction:
 
@@ -296,9 +347,25 @@ This document outlines key concepts and common interview questions related to No
 **Interview Questions:**
 
 * "How do you handle errors in asynchronous Node.js code?"
+  - Answer: Use try-catch with async/await, or .catch() with promises. For callbacks, use error-first callback pattern. Always handle errors explicitly to prevent unhandled rejections.
+  
 * "What are error-first callbacks?"
+  - Answer: Node.js convention where callback functions receive error as first parameter: function(err, result). If err is null/undefined, operation succeeded; otherwise, err contains error details.
+  
 * "How do you handle unhandled promise rejections and uncaught exceptions?"
+  - Answer: Use process.on('unhandledRejection') and process.on('uncaughtException') handlers. For promises, always use .catch() or try-catch with async/await. Log errors and gracefully shut down if necessary.
+  
 * "What are best practices for error logging?"
+  - Answer: Use structured logging (winston, pino), include context (user ID, request ID, stack traces), log levels (error, warn, info), send to centralized logging service, and avoid logging sensitive data.
+  
+* "How do you create custom error classes in Node.js?"
+  - Answer: Extend Error class, add custom properties, use constructor with message parameter. Helps distinguish error types and provides better error handling.
+  
+* "What is the difference between operational errors and programmer errors?"
+  - Answer: Operational errors are expected runtime errors (network failures, invalid input). Programmer errors are bugs (null reference, type errors). Handle operational errors, fix programmer errors.
+  
+* "How do you propagate errors in async code?"
+  - Answer: Throw errors in async functions, reject promises, pass errors to error-first callbacks. Use proper error propagation to maintain error context.
 
 ### 12. Testing:
 
@@ -490,4 +557,377 @@ Node interviews often include system design discussions; prepare with concrete p
   - Discuss: clustering, load balancing, caching layers, DB connection pooling, observability stack, graceful degradation.
 
 Preparing detailed architectures, trade-offs, and failure-handling strategies for these scenarios significantly boosts interview confidence.
+
+---
+
+## 20. Additional Core Modules & APIs
+
+### Path Module
+- **path.join()**: Join path segments properly across platforms
+- **path.resolve()**: Resolve absolute path
+- **path.basename(), path.dirname(), path.extname()**: Extract path components
+- **path.normalize()**: Normalize path strings
+
+**Interview Questions:**
+- "Why should you use path.join() instead of string concatenation for paths?"
+  - Answer: path.join() handles platform-specific separators (Windows vs Unix), prevents double slashes, and normalizes paths correctly. String concatenation can break across platforms.
+
+### URL Module
+- **url.parse()**, **url.format()**: Parse and format URLs
+- **URLSearchParams**: Work with query strings
+- **URL class**: Modern URL API
+
+**Interview Questions:**
+- "How do you parse query strings in Node.js?"
+  - Answer: Use URLSearchParams, url.parse() with querystring module, or URL class. URLSearchParams is most modern and recommended.
+
+### Crypto Module
+- **Hashing**: crypto.createHash() for SHA-256, MD5, etc.
+- **Encryption**: crypto.createCipher(), crypto.createDecipher()
+- **HMAC**: crypto.createHmac() for message authentication
+- **Random bytes**: crypto.randomBytes() for secure random data
+- **Sign/Verify**: crypto.createSign(), crypto.createVerify()
+
+**Interview Questions:**
+- "How do you generate secure random tokens in Node.js?"
+  - Answer: Use crypto.randomBytes() to generate cryptographically secure random bytes, then encode to hex/base64. Avoid Math.random() for security-sensitive operations.
+  
+- "What is HMAC and when would you use it?"
+  - Answer: HMAC (Hash-based Message Authentication Code) verifies data integrity and authenticity. Use for API signatures, JWT tokens, or verifying data hasn't been tampered.
+
+### Process Module
+- **process.env**: Environment variables
+- **process.argv**: Command line arguments
+- **process.exit()**: Exit process
+- **process.nextTick()**: Schedule callback
+- **process.on()**: Event listeners (uncaughtException, unhandledRejection)
+- **process.cwd()**: Current working directory
+- **process.memoryUsage()**: Memory statistics
+
+**Interview Questions:**
+- "How do you access environment variables in Node.js?"
+  - Answer: Use process.env object. Access like process.env.PORT. Use dotenv package for .env files. Always validate required environment variables at startup.
+  
+- "What is process.nextTick() and how does it differ from setImmediate()?"
+  - Answer: process.nextTick() schedules callback to run before event loop continues (microtask queue). setImmediate() schedules for next event loop iteration (macrotask queue). nextTick has higher priority.
+
+### OS Module
+- **os.platform()**: Operating system platform
+- **os.arch()**: CPU architecture
+- **os.cpus()**: CPU information
+- **os.totalmem()**, **os.freemem()**: Memory information
+- **os.hostname()**: Hostname
+- **os.networkInterfaces()**: Network interfaces
+
+**Interview Questions:**
+- "How do you get system information in Node.js?"
+  - Answer: Use os module for CPU, memory, platform info. Use process for Node.js specific info. Useful for monitoring, logging, or platform-specific code.
+
+---
+
+## 21. WebSockets & Real-Time Communication
+
+### Socket.IO
+- **Real-time bidirectional communication**
+- **Fallback mechanisms** (long polling if WebSockets unavailable)
+- **Rooms and namespaces** for organizing connections
+- **Events and acknowledgments**
+- **Scaling with Redis adapter**
+
+**Interview Questions:**
+- "How do you implement real-time features in Node.js?"
+  - Answer: Use Socket.IO or native WebSocket (ws library). Socket.IO provides fallbacks, rooms, and easier API. Native WebSocket is lighter but requires manual fallback handling.
+  
+- "How do you scale Socket.IO applications?"
+  - Answer: Use Redis adapter to share state across multiple servers. Use sticky sessions or configure load balancer for WebSocket connections. Separate WebSocket servers if needed.
+  
+- "What is the difference between Socket.IO and native WebSockets?"
+  - Answer: Socket.IO provides automatic reconnection, fallbacks, rooms, and simpler API. Native WebSocket (ws) is lighter, standard protocol, but requires more manual handling.
+
+### Native WebSockets (ws library)
+- **Lightweight WebSocket implementation**
+- **Server and client support**
+- **Connection management**
+- **Message framing**
+
+**Interview Questions:**
+- "When would you choose native WebSockets over Socket.IO?"
+  - Answer: When you need minimal overhead, standard protocol, don't need fallbacks, or have specific WebSocket requirements. Better for high-performance scenarios.
+
+---
+
+## 22. GraphQL in Node.js
+
+### Apollo Server
+- **GraphQL server implementation**
+- **Schema definition and resolvers**
+- **Subscriptions for real-time data**
+- **Data sources and caching**
+- **Error handling and validation**
+
+**Interview Questions:**
+- "What are the advantages of GraphQL over REST?"
+  - Answer: Clients request only needed data (no over/under-fetching), single endpoint, strong typing, better for mobile apps, self-documenting schema. More flexible but requires more setup.
+  
+- "How do you implement GraphQL subscriptions in Node.js?"
+  - Answer: Use Apollo Server with PubSub for subscriptions. Define subscription in schema, implement resolver with async iterator. Use WebSockets for real-time updates.
+  
+- "How do you handle N+1 query problems in GraphQL?"
+  - Answer: Use DataLoader to batch and cache database queries. DataLoader batches requests within single frame, reducing database calls significantly.
+
+### Schema Design
+- **Types, interfaces, unions**
+- **Queries, mutations, subscriptions**
+- **Input types and scalars**
+- **Directives for schema customization**
+
+---
+
+## 23. Microservices Architecture with Node.js
+
+### Service Communication
+- **HTTP/REST APIs**: Direct service calls
+- **Message queues**: RabbitMQ, Kafka for async communication
+- **gRPC**: High-performance RPC framework
+- **Service discovery**: Consul, Eureka, Kubernetes services
+
+**Interview Questions:**
+- "How do you handle service-to-service communication in microservices?"
+  - Answer: Use REST APIs for synchronous calls, message queues (RabbitMQ, Kafka) for async, gRPC for high-performance RPC. Implement service discovery and circuit breakers.
+  
+- "What is a circuit breaker pattern and why is it important?"
+  - Answer: Circuit breaker prevents cascading failures by stopping requests to failing service. Opens circuit after threshold, allows retry after timeout. Use opossum library in Node.js.
+
+### Service Patterns
+- **API Gateway**: Single entry point, routing, auth
+- **Service mesh**: Istio, Linkerd for communication
+- **Event-driven architecture**: Event sourcing, CQRS
+- **Saga pattern**: Distributed transactions
+
+---
+
+## 24. Caching Strategies
+
+### In-Memory Caching
+- **Node-cache**: Simple in-memory cache
+- **LRU cache**: Least Recently Used eviction
+- **Memory limits and TTL**
+
+### Distributed Caching
+- **Redis**: In-memory data store, pub/sub, persistence
+- **Memcached**: Simple key-value cache
+- **Cache invalidation strategies**
+- **Cache-aside, write-through, write-back patterns**
+
+**Interview Questions:**
+- "How do you implement caching in Node.js applications?"
+  - Answer: Use in-memory cache (node-cache) for single-server, Redis for distributed. Implement cache-aside pattern: check cache, if miss fetch from DB and cache. Set appropriate TTL.
+  
+- "What are different cache invalidation strategies?"
+  - Answer: TTL-based (time-to-live), event-based (invalidate on data change), manual invalidation, cache versioning. Choose based on data freshness requirements.
+  
+- "When would you use Redis vs in-memory caching?"
+  - Answer: Redis for multi-server deployments, shared cache, persistence needs, or pub/sub. In-memory cache for single-server, faster access, or simple use cases.
+
+---
+
+## 25. Message Queues & Background Jobs
+
+### Bull/BullMQ
+- **Redis-based job queue**
+- **Job priorities, delays, retries**
+- **Job progress tracking**
+- **Rate limiting**
+
+### RabbitMQ
+- **Message broker with exchanges**
+- **Queues, bindings, routing**
+- **Durable messages and acknowledgments**
+- **Pub/sub patterns**
+
+**Interview Questions:**
+- "How do you handle background job processing in Node.js?"
+  - Answer: Use Bull/BullMQ with Redis for job queues, or RabbitMQ for message broker. Queue jobs, process with workers, handle retries and failures. Use for async tasks like emails, image processing.
+  
+- "What is the difference between job queues and message queues?"
+  - Answer: Job queues (Bull) are for task processing with progress, retries, priorities. Message queues (RabbitMQ) are for event-driven communication, pub/sub, and routing.
+
+### AWS SQS / Azure Service Bus
+- **Cloud-managed queues**
+- **Visibility timeout and dead-letter queues**
+- **FIFO queues for ordering**
+
+---
+
+## 26. Logging & Monitoring
+
+### Structured Logging
+- **Winston**: Feature-rich logger with transports
+- **Pino**: Fast, low-overhead logger
+- **Log levels**: error, warn, info, debug
+- **JSON formatting for log aggregation**
+
+**Interview Questions:**
+- "How do you implement logging in Node.js applications?"
+  - Answer: Use winston or pino for structured logging. Log to console, files, or remote services. Use log levels appropriately. Include context (request IDs, user IDs) for tracing.
+  
+- "What is structured logging and why is it important?"
+  - Answer: Structured logging uses JSON format with consistent fields. Enables easy parsing, filtering, and aggregation in log management systems. Better than plain text logs.
+
+### Monitoring & Observability
+- **APM tools**: New Relic, Datadog, AppDynamics
+- **Metrics**: Prometheus, StatsD
+- **Tracing**: OpenTelemetry, Zipkin, Jaeger
+- **Error tracking**: Sentry, Rollbar
+
+**Interview Questions:**
+- "How do you monitor Node.js application performance?"
+  - Answer: Use APM tools (New Relic, Datadog) for metrics, tracing (OpenTelemetry) for request flows, error tracking (Sentry) for exceptions. Monitor CPU, memory, response times, error rates.
+
+---
+
+## 27. Advanced Error Handling Patterns
+
+### Error Boundaries
+- **Domain errors vs system errors**
+- **Error recovery strategies**
+- **Graceful degradation**
+- **Circuit breakers**
+
+### Error Monitoring
+- **Error tracking services**
+- **Alerting and notifications**
+- **Error aggregation and grouping**
+- **Performance impact tracking**
+
+**Interview Questions:**
+- "How do you implement graceful error handling in production?"
+  - Answer: Catch errors at appropriate levels, log with context, return user-friendly messages, implement retry logic for transient errors, use circuit breakers for external services, monitor error rates.
+
+---
+
+## 28. Security Advanced Topics
+
+### OWASP Top 10
+- **Injection attacks**: SQL, NoSQL, command injection
+- **Broken authentication**: Session fixation, weak passwords
+- **Sensitive data exposure**: Encryption at rest and in transit
+- **XXE (XML External Entity)**: XML parser configuration
+- **Broken access control**: Authorization checks
+- **Security misconfiguration**: Default credentials, open ports
+- **XSS (Cross-Site Scripting)**: Input sanitization
+- **Insecure deserialization**: Safe deserialization
+- **Using components with known vulnerabilities**: Dependency scanning
+- **Insufficient logging**: Security event logging
+
+**Interview Questions:**
+- "How do you prevent NoSQL injection in Node.js?"
+  - Answer: Validate and sanitize input, use parameterized queries, avoid eval() or string concatenation in queries, use ORM/ODM query builders, implement input validation middleware.
+  
+- "What is CSRF and how do you prevent it?"
+  - Answer: Cross-Site Request Forgery tricks users into executing actions. Prevent with CSRF tokens, SameSite cookies, checking Origin/Referer headers, or using double-submit cookies.
+
+---
+
+## 29. Database Advanced Topics
+
+### Connection Pooling
+- **Pool configuration**: min, max connections
+- **Connection lifecycle management**
+- **Timeout and retry logic**
+- **Health checks**
+
+**Interview Questions:**
+- "How do you configure database connection pooling?"
+  - Answer: Set min/max pool size based on expected load, configure idle timeout, implement connection retry logic, monitor pool usage. Default pools usually need tuning for production.
+  
+- "What happens when connection pool is exhausted?"
+  - Answer: Requests wait for available connection or timeout. Can cause cascading failures. Monitor pool usage, increase pool size, optimize queries, or add more database servers.
+
+### Transactions
+- **ACID properties**
+- **Nested transactions**
+- **Transaction isolation levels**
+- **Distributed transactions (two-phase commit)**
+
+**Interview Questions:**
+- "How do you handle database transactions in Node.js?"
+  - Answer: Use transaction methods from ORM (Sequelize, TypeORM) or driver. Begin transaction, execute queries, commit on success, rollback on error. Handle errors properly to avoid hanging transactions.
+
+### Database Migrations
+- **Schema versioning**
+- **Migration tools**: Knex, Sequelize migrations
+- **Rollback strategies**
+- **Zero-downtime migrations**
+
+---
+
+## 30. API Design Best Practices
+
+### RESTful API Design
+- **Resource naming conventions**
+- **HTTP methods and status codes**
+- **Pagination and filtering**
+- **Versioning strategies**
+- **Documentation (OpenAPI/Swagger)**
+
+**Interview Questions:**
+- "What are RESTful API design best practices?"
+  - Answer: Use nouns for resources, proper HTTP methods, status codes, versioning (URL or header), pagination for lists, filtering/sorting, consistent error format, comprehensive documentation.
+  
+- "How do you implement API pagination?"
+  - Answer: Use offset/limit (simple but inefficient) or cursor-based (efficient for large datasets). Return metadata (total count, next cursor). Cursor-based is better for performance.
+
+### API Documentation
+- **OpenAPI/Swagger specification**
+- **Auto-generated documentation**
+- **Interactive API explorer**
+- **Code examples and schemas**
+
+---
+
+## 31. Comprehensive Interview Questions Bank
+
+### Fundamentals
+1. **What is Node.js and what makes it different from other server-side technologies?**
+   - Answer: Node.js is JavaScript runtime built on Chrome's V8 engine. Single-threaded, event-driven, non-blocking I/O. Great for I/O-bound applications, real-time apps, and APIs. Uses event loop for concurrency.
+
+2. **Explain the Node.js architecture.**
+   - Answer: V8 JavaScript engine, libuv for async I/O and event loop, Node.js bindings, and core modules. Event loop handles async operations, thread pool for blocking operations, single main thread for JavaScript execution.
+
+3. **What is npm and how does it work?**
+   - Answer: npm (Node Package Manager) manages dependencies, scripts, and package metadata. Uses package.json for configuration, node_modules for packages, package-lock.json for deterministic installs. Registry at npmjs.com.
+
+4. **What is the difference between dependencies and devDependencies?**
+   - Answer: dependencies are required at runtime, devDependencies only for development (testing, building, linting). Use --save-dev for devDependencies. Reduces production bundle size.
+
+5. **How does Node.js handle child processes?**
+   - Answer: Use child_process module (spawn, exec, fork). Spawn for commands, exec for shell commands, fork for Node scripts. Communicate via IPC, streams, or events. Use for CPU-intensive tasks.
+
+### Performance & Optimization
+6. **How do you optimize Node.js application performance?**
+   - Answer: Use clustering for multi-core, worker threads for CPU tasks, caching (Redis), connection pooling, code splitting, lazy loading, profiling and optimizing hotspots, use streams for large data.
+
+7. **What is the difference between blocking and non-blocking code?**
+   - Answer: Blocking code stops execution until operation completes. Non-blocking code continues execution, uses callbacks/promises for results. Node.js is non-blocking by default for I/O operations.
+
+8. **How do you prevent memory leaks in Node.js?**
+   - Answer: Remove event listeners, clear timers/intervals, close streams/connections, avoid global variables, use weak references where appropriate, monitor memory usage, profile with DevTools.
+
+### Real-World Scenarios
+9. **How would you design a file upload service?**
+   - Answer: Use multer for multipart/form-data, validate file types/sizes, stream to storage (S3/GCS), implement resumable uploads with chunking, progress tracking, virus scanning, signed URLs for access.
+
+10. **How would you implement a rate limiting system?**
+    - Answer: Use express-rate-limit or custom middleware. Store limits in memory (single server) or Redis (distributed). Token bucket or sliding window algorithm. Apply per IP, user, or API key.
+
+11. **How would you build a real-time chat application?**
+    - Answer: Use Socket.IO or WebSockets, Redis adapter for scaling, store messages in database, implement rooms/channels, presence tracking, message persistence, handle reconnection, implement typing indicators.
+
+12. **How would you implement a caching layer for a REST API?**
+    - Answer: Use Redis for distributed cache, cache-aside pattern, set TTL based on data freshness needs, cache invalidation on updates, cache keys with versioning, implement cache warming for hot data.
+
+---
+
+This comprehensive guide covers all major Node.js topics you'll encounter in interviews. Practice implementing these concepts, understand the underlying principles, and be ready to discuss trade-offs and design decisions.
 
