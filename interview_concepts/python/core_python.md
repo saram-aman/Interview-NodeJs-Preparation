@@ -402,7 +402,7 @@ This comprehensive guide is structured to help you master Python concepts from f
 
 ---
 
-## 9. Design Patterns
+## 9. Design Patterns & Architecture (Extended)
 
 ### Creational Patterns
 - Singleton

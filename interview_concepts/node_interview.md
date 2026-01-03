@@ -318,3 +318,176 @@ This document outlines key concepts and common interview questions related to No
 * "What are the benefits of testing?"
 * "How do you mock dependencies in your tests?"
 
+---
+
+## 13. Event Loop & Concurrency Deep Dive
+
+### Overview
+Understanding the Node.js event loop is critical for diagnosing performance issues, avoiding blocking operations, and explaining Node’s concurrency model in interviews.
+
+### Key Concepts
+- **Phases:** timers → pending callbacks → idle/prepare → poll → check → close callbacks.
+- **Microtasks vs. Macrotasks:** `process.nextTick` and resolved promises run before returning to the loop; timers/setImmediate scheduled for later phases.
+- **Libuv Thread Pool:** Handles file system I/O, DNS, compression; configurable via `UV_THREADPOOL_SIZE`.
+- **Backpressure:** Coordinating producers/consumers in streams and sockets to prevent buffer bloat.
+
+### Advanced Topics
+- **Async Hooks / Diagnostics Channel:** Trace async resource lifecycles for performance debugging.
+- **Observing Event Loop Lag:** `perf_hooks.monitorEventLoopDelay()` or `event-loop-lag` packages measure blocking time.
+- **Priority Inversions:** Overusing `process.nextTick` can starve I/O; prefer `setImmediate` for fairness.
+- **Worker Threads + Event Loop:** Each worker has its own loop; shared memory via `SharedArrayBuffer`.
+
+### Sample Interview Questions
+- **Q:** Walk through what happens when `setTimeout`, `setImmediate`, and `process.nextTick` are scheduled together.
+  - **A:** `process.nextTick` runs immediately after current stack before event loop continues; timers run in timers phase once delay elapses; `setImmediate` runs in check phase after poll. Ordering depends on whether timer delay has elapsed.
+- **Q:** How do you detect and mitigate event loop blocking?
+  - **A:** Monitor latency (e.g., `libuv` metrics), refactor CPU-heavy work into worker threads, stream large processing, or move to separate services.
+
+---
+
+## 14. Asynchronous Patterns & APIs
+
+### Overview
+Node offers multiple async paradigms; being fluent in all of them showcases versatility.
+
+### Key Concepts
+- **Callbacks:** Error-first convention (`function(err, result)`), `fs.readFile`.
+- **Promises:** Native promises, `util.promisify`, chaining, `Promise.allSettled`.
+- **Async/Await:** Syntactic sugar over promises, error handling with `try/catch`.
+- **Event Emitters:** Pub/sub semantics; ensures listeners and cleanup.
+- **Streams:** Backpressure-aware async data flow.
+
+### Advanced Topics
+- **AbortController:** Cancel HTTP requests, database calls, or custom async tasks.
+- **Async Local Storage:** Maintain request context across async boundaries for logging/tracing.
+- **Concurrency Control:** Limit parallel tasks with queues (p-limit, BullMQ) or semaphores.
+- **Patterns:** Fan-out/fan-in, pipeline, circuit breakers (opossum library), retries with exponential backoff.
+
+### Sample Interview Questions
+- **Q:** How do you convert a callback API to promises?
+  - **A:** Use `util.promisify` or wrap in new Promise, resolving/rejecting based on callback arguments.
+- **Q:** What happens if you forget to `await` an async call?
+  - **A:** Function returns unresolved promise; caller may proceed before completion leading to race conditions and unhandled rejections.
+
+---
+
+## 15. Package Management & Tooling
+
+### Overview
+Demonstrating mastery of Node’s ecosystem—including packages, build tools, and configuration—shows readiness for production work.
+
+### Key Concepts
+- **npm vs. Yarn vs. pnpm:** Installation strategies, lockfiles, workspace support.
+- **Semantic Versioning:** `^`, `~`, exact versions; dependency ranges.
+- **Scripts & Tooling:** npm scripts, npx, concurrently, cross-env.
+- **Module Systems:** CommonJS vs. ES Modules (`type: module`, dynamic import).
+
+### Advanced Topics
+- **Monorepos:** npm workspaces, pnpm workspaces, Turborepo, Nx for orchestrating builds/tests.
+- **Tree Shaking / Bundling:** Rollup, esbuild, webpack when targeting browser bundles or serverless functions.
+- **Security Scans:** `npm audit`, `snyk`, dependency review workflows.
+- **Environment Management:** `.env`, dotenv, Vault/KMS integrations; per-environment configs.
+
+### Sample Interview Questions
+- **Q:** How do you structure a monorepo with shared Node packages?
+  - **A:** Use workspaces to hoist dependencies, maintain per-package scripts, leverage build tools (Turborepo/Nx) for caching and task pipelines.
+- **Q:** What steps do you take when `npm audit` flags a vulnerability?
+  - **A:** Assess severity, bump dependency (direct or via resolutions), test for regressions, and document in release notes.
+
+---
+
+## 16. Performance, Monitoring & Scaling
+
+### Overview
+High-performing Node services require profiling, observability, and horizontal/vertical scaling strategies.
+
+### Key Concepts
+- **Profiling Tools:** `node --inspect`, Chrome DevTools, Clinic.js (Doctor, Flame, Bubbleprof), `0x`.
+- **Caching Strategies:** In-memory (LRU), Redis, CDN, HTTP cache headers.
+- **Scalability:** Clustering, load balancers, stateless design, connection pooling.
+- **Observability:** Structured logging (pino, winston), metrics (Prometheus), tracing (OpenTelemetry).
+
+### Advanced Topics
+- **Backpressure Management:** Pause/resume streams, limit queue lengths, adapt rate-limiting.
+- **Health Checks:** Liveness/readiness endpoints, application-level circuit breakers.
+- **Autoscaling:** Metrics-based scale-out in Kubernetes, AWS ECS/Fargate, serverless warm starts.
+- **Cost Optimization:** Efficient GC tuning, native addons for hot paths, right-sizing containers.
+
+### Sample Interview Questions
+- **Q:** How would you diagnose high CPU usage in a Node service?
+  - **A:** Capture CPU profile with `clinic flame` or DevTools, analyze hotspots, inspect synchronous loops or heavy JSON parsing, offload to worker threads.
+- **Q:** What strategies ensure horizontal scalability?
+  - **A:** Stateless services, shared caches, database connection pools, message queues, cluster mode, and readiness probes to ensure healthy workers.
+
+---
+
+## 17. Testing & Quality at Scale
+
+### Overview
+Go beyond unit tests to show comprehensive quality practices.
+
+### Key Concepts
+- **Test Pyramid:** Unit, integration, contract, end-to-end.
+- **Mocking & Stubs:** Sinon, jest mocks, nock for HTTP.
+- **Fixtures & Factories:** seeding test databases, FactoryGirl-equivalents.
+- **Coverage & CI:** Istanbul/nyc, GitHub Actions, GitLab CI.
+
+### Advanced Topics
+- **Contract Testing:** Pact or Schemathesis for API compatibility.
+- **Property-Based Testing:** fast-check to explore edge cases.
+- **Test Containers:** Spin up disposable DBs/services (testcontainers-node) for realistic integration tests.
+- **Chaos Engineering:** Inject failures/timeouts to validate resilience.
+
+### Sample Interview Questions
+- **Q:** How do you test code that interacts with third-party APIs?
+  - **A:** Use nock/MSW to mock requests, contract tests to ensure schema alignment, and sandbox keys for integration environments.
+- **Q:** Explain your CI pipeline for Node apps.
+  - **A:** Lint (ESLint), type check (TypeScript), run tests with coverage, build artifacts, scan dependencies, and deploy with gated approvals.
+
+---
+
+## 18. Deployment & DevOps
+
+### Overview
+Interviewers expect familiarity with deploying Node in modern infrastructures.
+
+### Key Concepts
+- **Process Managers:** PM2, forever, systemd for restarts/logging.
+- **Containerization:** Docker best practices (multi-stage builds, non-root users, health checks).
+- **Serverless:** AWS Lambda, Azure Functions; cold starts, bundling, observability.
+- **Configuration Management:** Twelve-Factor principles, feature flags.
+
+### Advanced Topics
+- **CI/CD Pipelines:** Blue/green, canary deploys, GitOps.
+- **Secrets Management:** AWS KMS, HashiCorp Vault, environment-specific encryption.
+- **Edge Deployment:** Cloudflare Workers, Vercel Edge, Deno Deploy for low latency APIs.
+- **Rollback Strategies:** Versioned artifacts, database migrations with back-out plans.
+
+### Sample Interview Questions
+- **Q:** How do you containerize a Node.js API securely?
+  - **A:** Use slim base image, install deps with `npm ci`, run as non-root, set NODE_ENV=production, add health checks and proper logging.
+- **Q:** Describe a blue/green deployment for a Node service.
+  - **A:** Deploy new version (green) alongside current (blue), route small traffic, monitor metrics, switch traffic fully, keep blue ready for rollback.
+
+---
+
+## 19. System Design & Scenario Questions
+
+### Overview
+Node interviews often include system design discussions; prepare with concrete patterns.
+
+### Topics & Talking Points
+- **Real-time Chat/Collaboration:** WebSockets (Socket.IO), pub/sub (Redis, Kafka), presence tracking.
+- **API Gateways:** Rate limiting, caching, auth, schema validation (AJV, Zod).
+- **Task Queues:** BullMQ, RabbitMQ, AWS SQS for background processing.
+- **File Upload Pipelines:** Streaming uploads to S3/GCS, virus scanning, resumable uploads, signed URLs.
+- **GraphQL Services:** Apollo Server, schema stitching, persisted queries.
+
+### Sample Design Prompts
+- **Design a real-time notification system**
+  - Discuss: WebSocket servers, horizontal scaling with Redis adapter, reconnection strategies, delivery guarantees.
+- **Build a high-throughput REST API**
+  - Discuss: clustering, load balancing, caching layers, DB connection pooling, observability stack, graceful degradation.
+
+Preparing detailed architectures, trade-offs, and failure-handling strategies for these scenarios significantly boosts interview confidence.
+

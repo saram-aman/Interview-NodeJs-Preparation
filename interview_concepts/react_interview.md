@@ -475,3 +475,125 @@ React is widely used in microfrontend architectures and large-scale enterprise a
   - **A:** Independent deployment, team autonomy, technology diversity, and scalable development for large apps.
 - **Q:** How do you share code between microfrontends?
   - **A:** Use module federation, shared libraries, and design systems to ensure consistency and reduce duplication.
+
+---
+
+## 21. Data Fetching & Caching Strategies
+
+### Overview
+Modern React apps rely on sophisticated data-fetching libraries to handle caching, synchronization, and mutations beyond manual `useEffect` calls.
+
+### Key Concepts
+- **React Query / TanStack Query:** Query keys, caching tiers, background refetching, optimistic updates.
+- **SWR (stale-while-revalidate):** Focus on revalidation and cache invalidation through hooks.
+- **React 18 Suspense for Data Fetching:** `use` hook (experimental), resource APIs.
+- **Streaming + Server Components:** Load data on the server, stream to client for low-latency experiences.
+
+### Advanced Topics
+- **Pagination & Infinite Queries:** Handling windowed lists with `fetchNextPage`.
+- **Dependent Queries:** Execute queries after prerequisite data resolves.
+- **Offline Support:** Persist query cache to IndexedDB/localStorage for offline-first apps.
+- **Error & Loading States:** Global toasts, skeleton UIs, retry policies, fallback UI.
+
+### Sample Interview Questions
+- **Q:** How do you avoid duplicated network requests in React?
+  - **A:** Use data-fetching libraries (React Query/SWR) that cache results by key, deduplicate requests, and share state across components.
+- **Q:** Explain optimistic updates and when you’d use them.
+  - **A:** Update UI immediately before server confirmation to improve UX (e.g., liking a post); roll back if mutation fails.
+
+---
+
+## 22. React + GraphQL Integration
+
+### Overview
+React pairs well with GraphQL for efficient data fetching and declarative schemas.
+
+### Key Concepts
+- **Apollo Client / urql / Relay:** Client-side caches, normalized stores, schema awareness.
+- **Fragments & Co-location:** Define data requirements next to components to avoid over/under-fetching.
+- **Subscriptions:** Real-time updates via websockets or SSE.
+- **Schema Types:** Strong typing, introspection, codegen (GraphQL Code Generator).
+
+### Advanced Topics
+- **Cache Policies:** `cache-first`, `network-only`, `cache-and-network`.
+- **Pagination:** Relay-style cursors, offset pagination, custom merge functions.
+- **Error Handling:** GraphQL error extensions, global error boundaries, retry logic.
+- **Auth & Security:** Passing JWT/headers, persisted queries, query cost analysis.
+
+### Sample Interview Questions
+- **Q:** How do you normalize GraphQL data on the client?
+  - **A:** Use Apollo’s InMemoryCache or Relay’s store to identify entities by typename + id, preventing duplicates and enabling cache updates.
+- **Q:** Describe how you’d handle real-time updates with GraphQL subscriptions.
+  - **A:** Establish websocket link, subscribe to server events, merge incoming data into cache or local state, manage reconnection/backoff.
+
+---
+
+## 23. React 18 Concurrency & Transitional UI
+
+### Overview
+React 18 introduced concurrent rendering features to keep apps responsive during heavy updates.
+
+### Key Concepts
+- **Automatic Batching:** Multiple state updates batched in more cases (promises, timeouts).
+- **`startTransition`:** Mark non-urgent updates, keeping UI responsive while deferring heavy work.
+- **`useTransition`:** Hook to track pending state and show fallback UI.
+- **`useDeferredValue`:** Lagging value derived from fast-changing inputs to avoid blocking typed input.
+
+### Advanced Topics
+- **Streaming SSR:** `renderToPipeableStream`, `renderToReadableStream` for Node/Deno.
+- **Suspense Boundaries:** Graceful loading states while fetching async data.
+- **Concurrent Rendering Pitfalls:** Side-effects must remain idempotent; avoid relying on render counts.
+
+### Sample Interview Questions
+- **Q:** When would you use `startTransition`?
+  - **A:** For expensive state updates (filters, search results) triggered by user input, so typing stays responsive while results update in background.
+- **Q:** How does automatic batching improve performance?
+  - **A:** React batches more state updates, reducing unnecessary renders; previously only event handlers were batched.
+
+---
+
+## 24. System Design & Scenario-Based Questions
+
+### Common Scenarios
+1. **Design a Real-Time Dashboard**
+   - Discuss WebSockets, data polling intervals, virtualization for large tables, and fallback strategies if sockets drop.
+2. **Large Form Builder**
+   - Cover dynamic form rendering, validation strategy (Formik/RHF), splitting state by sections, autosave, and accessibility.
+3. **Microfrontend Migration**
+   - Explain module federation, shared design tokens, communication buses, and independent deployments.
+4. **Offline-First Progressive Web App**
+   - Use service workers (Workbox), cache strategies, background sync, and state persistence.
+
+### Interview Tips
+- Diagram component hierarchies and data flow.
+- Discuss trade-offs (performance vs. complexity, SSR vs. CSR).
+- Mention monitoring (web vitals), error tracking, and rollout strategies (feature flags, canary releases).
+
+### Sample Questions
+- **Q:** How would you architect a design system consumed by multiple React apps?
+  - **A:** Create a component library with Storybook, enforce theming using tokens, ship via npm packages, provide lint rules and CI visual regression tests.
+- **Q:** Describe your approach to ensuring Lighthouse performance targets.
+  - **A:** Optimize bundle splitting, images (lazy loading, AVIF/webp), critical CSS inlining, prefetching, and monitor Core Web Vitals via RUM tools.
+
+---
+
+## 25. Comprehensive React Interview Q&A Bank
+
+1. **How do you detect and avoid memory leaks in React?**
+   - **Answer:** Clean up subscriptions/timers in `useEffect` return, avoid stale references, use AbortController for fetches, and profile with DevTools.
+2. **What’s the difference between controlled vs. uncontrolled inputs?**
+   - **Answer:** Controlled inputs derive value from React state; uncontrolled maintain internal DOM state accessed via refs—useful for simple forms or integrations.
+3. **Explain hydration mismatch errors and how to prevent them.**
+   - **Answer:** Occur when SSR markup differs from client render; ensure deterministic rendering, avoid browser-only APIs during SSR, and guard with `useEffect`.
+4. **How do you share logic across multiple components?**
+   - **Answer:** Custom hooks, render props, higher-order components, or headless UI patterns.
+5. **What strategies ensure accessibility in complex widgets (modals, dropdowns)?**
+   - **Answer:** Manage focus trap, ARIA roles, keyboard navigation, announce changes via live regions, and test with screen readers.
+6. **Describe your testing strategy for a React + Redux app.**
+   - **Answer:** Unit test reducers/selectors, integration test connected components with Testing Library, mock API calls, and run E2E flows via Cypress/Playwright.
+7. **How do you internationalize a React application?**
+   - **Answer:** Use libraries (react-intl, i18next), externalize strings, handle locale-specific formatting (Intl APIs), and support dynamic language switching.
+8. **What’s your approach to code-splitting routes?**
+   - **Answer:** Use React.lazy with Suspense, wrap route components in lazy imports, prefetch critical routes, and handle fallback UI.
+
+This extended Q&A helps cover the broad spectrum of topics senior-level interviews frequently explore.
