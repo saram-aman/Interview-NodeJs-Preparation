@@ -2,22 +2,30 @@ class StringProblems {
     constructor(str) {
         this.str = str;
     }
-
-    countMostCommonChar() {
-        this.str = this.str.replace(/[^a-zA-Z]/g, "").toLowerCase();
-        let charCounts = {};
-        for (let i = 0; i < this.str.length; i++) {
-            charCounts[this.str.charAt(i)] = (charCounts[this.str.charAt(i)] || 0) + 1;
-        }
-        let maxCount = 0;
-        let maxChar = '';
-        for (let char in charCounts) {
-            if (charCounts[char] > maxCount) {
-                maxCount = charCounts[char];
-                maxChar = char;
+    async countMostCommonChar() {
+        try {
+            this.str = this.str.replace(/[^a-zA-Z]/g, "").toLowerCase();
+            let charCounts = {};
+            for (let i = 0; i < this.str.length; i++) {
+                charCounts[this.str.charAt(i)] = (charCounts[this.str.charAt(i)] || 0) + 1;
             }
+            let maxCount = 0;
+            let maxChar = '';
+            for (let char in charCounts) {
+                if (charCounts[char] > maxCount) {
+                    maxCount = charCounts[char];
+                    maxChar = char;
+                }
+            }
+            return maxChar;
+        } catch (error) {
+            if (error) {
+                console.error("Error in commonInTwoArray:", error.message);
+            } else {
+                console.error("Unknown error in commonInTwoArray");
+            }
+            return [];
         }
-        return maxChar;
     }
 }
 
