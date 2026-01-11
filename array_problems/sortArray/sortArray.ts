@@ -1,11 +1,9 @@
 class ArrayProblems {
     private arr: number[];
-
     constructor(arr: number[]) {
         this.arr = [...arr];
     }
-
-    quick(items: number[] | null = null): number[] {
+    public async quick(items: number[] | null = null): Promise<number[]> {
         const list: number[] = items ? [...items] : [...this.arr]; 
         if (list.length < 2) return list;
         const pivot: number = list[0];
@@ -15,7 +13,7 @@ class ArrayProblems {
         return [...this.quick(smaller), ...equal, ...this.quick(bigger)];
     }
 
-    bubble(items: number[] | null = null): number[] {
+    public async bubble(items: number[] | null = null): Promise<number[]> {
         const list: number[] = items ? [...items] : [...this.arr]; 
         const length: number = list.length;
         for (let passover = 0; passover < length; passover++) {
@@ -30,7 +28,7 @@ class ArrayProblems {
         return list;
     }
 
-    select(items: number[] | null = null): number[] {
+    public async select(items: number[] | null = null): Promise<number[]> {
         const list: number[] = items ? [...items] : [...this.arr]; 
         const length: number = list.length;
         for (let passes = 0; passes < length; passes++) {
@@ -47,7 +45,7 @@ class ArrayProblems {
         return list;
     }
 
-    insert(items: number[] | null = null): number[] {
+    public async insert(items: number[] | null = null): Promise<number[]> {
         const list: number[] = items ? [...items] : [...this.arr]; 
         const length: number = list.length;
         for (let i = 1; i < length; i++) {
@@ -62,7 +60,7 @@ class ArrayProblems {
         return list;
     }
 
-    simple(items: number[] | null = null): number[] {
+    public async simple(items: number[] | null = null): Promise<number[]> {
         const list: number[] = items ? [...items] : [...this.arr]; 
         const length: number = list.length;
         for (let i = 0; i < length; i++) {
@@ -77,16 +75,16 @@ class ArrayProblems {
         return list;
     }
 
-    mergeSort(items: number[] | null = null): number[] {
+    public async mergeSort(items: number[] | null = null): Promise<number[]> {
         const list: number[] = items ? [...items] : [...this.arr]; 
         if (list.length <= 1) return list;
         const middle: number = Math.floor(list.length / 2);
-        const left: number[] = this.mergeSort(list.slice(0, middle));
-        const right: number[] = this.mergeSort(list.slice(middle));
+        const left: number[] = await this.mergeSort(list.slice(0, middle));
+        const right: number[] = await this.mergeSort(list.slice(middle));
         return this.merge(left, right);
     }
 
-    private merge(left: number[], right: number[]): number[] {
+    private async merge(left: number[], right: number[]): Promise<number[]> {
         const merged: number[] = [];
         while (left.length > 0 && right.length > 0) {
             if (left[0] <= right[0]) {
@@ -98,20 +96,12 @@ class ArrayProblems {
         return [...merged, ...left, ...right];
     }
 }
-
-const arr: number[] = [0, 43, 3, 2, 3, 4, 6];
-const sort = new ArrayProblems(arr);
-
-const quickSort: number[] = sort.quick();
-const selectSort: number[] = sort.select();
-const insertSort: number[] = sort.insert();
-const bubbleSort: number[] = sort.bubble();
-const simpleSort: number[] = sort.simple();
-const mergeSort: number[] = sort.mergeSort();
-
-console.log("quick sort:", quickSort);
-console.log("select sort:", selectSort);
-console.log("insert sort:", insertSort);
-console.log("bubble sort:", bubbleSort);
-console.log("simple sort:", simpleSort);
-console.log("merge sort:", mergeSort);
+(async () => {
+    const array_problems = new ArrayProblems([64, 34, 25, 12, 22, 11, 90]);
+    console.log("Quick Sort:", await array_problems.quick());
+    console.log("Bubble Sort:", await array_problems.bubble());
+    console.log("Selection Sort:", await array_problems.select());
+    console.log("Insertion Sort:", await array_problems.insert());
+    console.log("Simple Sort:", await array_problems.simple());
+    console.log("Merge Sort:", await array_problems.mergeSort());
+})();
