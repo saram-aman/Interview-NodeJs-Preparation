@@ -1,14 +1,14 @@
 class ArrayProblems {
-    private arr: number[];
-    constructor(arr: number[]) {
-        this.arr = arr;
+    private number: number;
+    constructor(number: number) {
+        this.number = number;
     }
     public async fibonacciSeries(): Promise<number[]> {
         try {
             const fibSeries: number[] = [];
             fibSeries.push(0);
             fibSeries.push(1);
-            for (let i = 2; i < this.arr.length; i++) {
+            for (let i = 2; i < this.number; i++) {
                 const nextFib = fibSeries[i - 1] + fibSeries[i - 2];
                 fibSeries.push(nextFib);
             }
@@ -24,6 +24,6 @@ class ArrayProblems {
     }   
 }
 (async () => {
-    const array_problems = new ArrayProblems(10);
+    const array_problems = new ArrayProblems(200);
     console.log(await array_problems.fibonacciSeries());
 })();
