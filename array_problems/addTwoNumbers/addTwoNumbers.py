@@ -1,13 +1,27 @@
 class ArrayProblems:
     def addTwoNumbers(self, array1, array2):
-        res_arr = []
-        num1 = int(''.join(map(str, array1)).replace(',', ''))
-        num2 = int(''.join(map(str, array2)).replace(',', ''))
-        items = list(str(num1 + num2)[::-1])
-        for i in range(len(items)):
-            res_arr.append(int(items[i]))
-
-        return res_arr
+        num1 = int(''.join(map(str, array1)))
+        num2 = int(''.join(map(str, array2)))
+        items = str(num1 + num2)[::-1]
+        return [int(digit) for digit in items]    
+        
+        
+    def addTwoNumbersOptimal(self, l1, l2):
+        dummyHead = ListNode(0)
+        curr = dummyHead
+        carry = 0
+        while l1 != None or l2 != None or carry != 0:
+            l1Val = l1.val if l1 else 0
+            l2Val = l2.val if l2 else 0
+            columnSum = l1Val + l2Val + carry
+            carry = columnSum // 10
+            newNode = ListNode(columnSum % 10)
+            curr.next = newNode
+            curr = newNode
+            l1 = l1.next if l1 else None
+            l2 = l2.next if l2 else None
+        return dummyHead.next
+        
 
 
 array_problems = ArrayProblems()
@@ -15,3 +29,5 @@ arr1 = [9, 9, 9, 9, 9, 9, 9]
 arr2 = [9, 9, 9, 9]
 addedNumbers = array_problems.addTwoNumbers(arr1, arr2)
 print(addedNumbers)
+addedNumbersOptimal = array_problems.addTwoNumbersOptimal(arr1, arr2)
+print(addedNumbersOptimal)
