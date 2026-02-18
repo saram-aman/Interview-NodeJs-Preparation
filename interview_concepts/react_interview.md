@@ -1,6 +1,1068 @@
-# React Interview Preparation
+# React Interview Preparation Guide
 
-This document outlines key concepts and common interview questions related to React, designed to help you prepare for technical interviews.
+This comprehensive guide covers essential React concepts, patterns, and best practices to help you excel in technical interviews. Each section includes detailed explanations, practical examples, and common interview questions with answers.
+
+## Table of Contents
+1. [Component Lifecycle & Hooks](#1-component-lifecycle--hooks)
+2. [State Management](#2-state-management)
+3. [Props and Component Composition](#3-props-and-component-composition)
+4. [Virtual DOM and Reconciliation](#4-virtual-dom-and-reconciliation)
+5. [Routing with React Router](#5-routing-react-router)
+6. [Performance Optimization](#6-performance-optimization)
+7. [Error Handling](#7-error-handling)
+8. [Testing React Applications](#8-testing-react-applications)
+9. [Advanced Hooks Patterns](#9-advanced-hooks-patterns)
+10. [React 18+ Features](#10-react-18-features)
+11. [Server Components & Next.js](#11-server-components--nextjs)
+12. [Advanced Patterns](#12-advanced-patterns)
+13. [Common Interview Questions](#13-common-interview-questions)
+
+## 1. Component Lifecycle & Hooks
+
+### Class Components Lifecycle
+
+#### Mounting Phase
+```jsx
+class ExampleComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { count: 0 };
+    console.log('1. Constructor');
+  }
+
+  static getDerivedStateFromProps(nextProps, prevState) {
+    console.log('2. getDerivedStateFromProps');
+    return null; // Return new state or null
+  }
+
+  componentDidMount() {
+    console.log('4. componentDidMount');
+    // Perfect for API calls, subscriptions, timers
+    this.timer = setInterval(() => {
+      this.setState(prev => ({ count: prev.count + 1 }));
+    }, 1000);
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    console.log('5. shouldComponentUpdate');
+    return nextState.count % 2 === 0; // Only update on even counts
+  }
+
+  getSnapshotBeforeUpdate(prevProps, prevState) {
+    console.log('6. getSnapshotBeforeUpdate');
+    return { message: 'Snapshot data' };
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    console.log('7. componentDidUpdate', snapshot);
+  }
+
+  componentWillUnmount() {
+    console.log('8. componentWillUnmount');
+    clearInterval(this.timer);
+  }
+
+  render() {
+    console.log('3. Render');
+    return <div>Count: {this.state.count}</div>;
+  }
+}
+```
+
+### Functional Components with Hooks
+
+#### useState
+```jsx
+import { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(() => {
+    // Lazy initialization
+    const initialValue = Number(window.localStorage.getItem('count')) || 0;
+    return initialValue;
+  });
+  
+  // Update localStorage when count changes
+  useEffect(() => {
+    window.localStorage.setItem('count', count);
+  }, [count]);
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(prev => prev + 1)}>
+        Increment
+      </button>
+    </div>
+  );
+}
+```
+
+#### useEffect
+```jsx
+import { useState, useEffect } from 'react';
+
+function DataFetcher({ userId }) {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`/api/users/${userId}`);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const result = await response.json();
+        
+        if (isMounted) {
+          setData(result);
+          setLoading(false);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err.message);
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchData();
+
+    // Cleanup function
+    return () => {
+      isMounted = false;
+      // Cancel any pending requests
+      // source.cancel('Component unmounted');
+    };
+  }, [userId]); // Only re-run if userId changes
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  return <div>{JSON.stringify(data, null, 2)}</div>;
+}
+```
+
+### Common Interview Questions
+
+#### 1. "Explain the differences between useEffect and useLayoutEffect"
+
+**Answer:**
+- **useEffect**: Runs asynchronously after the browser has painted the screen. Use for data fetching, subscriptions, or other non-blocking operations.
+- **useLayoutEffect**: Runs synchronously after all DOM mutations but before the browser paints. Use when you need to read layout from the DOM and make DOM mutations that should be visible to the user immediately.
+
+```jsx
+// Example showing the difference
+function Example() {
+  const [width, setWidth] = useState(0);
+  
+  useEffect(() => {
+    // This runs after the browser has painted
+    console.log('useEffect - Width:', width);
+    
+    // This will cause a second render + paint
+    setWidth(200);
+  }, []);
+  
+  useLayoutEffect(() => {
+    // This runs before the browser paints
+    console.log('useLayoutEffect - Width:', width);
+    
+    // This will cause a second render before paint
+    setWidth(100);
+  }, []);
+  
+  return <div style={{ width: `${width}px` }}>Width: {width}px</div>;
+}
+```
+
+#### 2. "How would you optimize a component that re-renders too often?"
+
+**Answer:**
+1. **Use React.memo for functional components**
+   ```jsx
+   const ExpensiveComponent = React.memo(function ExpensiveComponent({ data }) {
+     // Component code
+   }, (prevProps, nextProps) => {
+     // Custom comparison function
+     return prevProps.data.id === nextProps.data.id;
+   });
+   ```
+
+2. **useMemo for expensive calculations**
+   ```jsx
+   const memoizedValue = useMemo(
+     () => computeExpensiveValue(a, b),
+     [a, b] // Only recompute when a or b changes
+   );
+   ```
+
+3. **useCallback for function references**
+   ```jsx
+   const handleClick = useCallback(() => {
+     // Handler logic
+   }, [/* dependencies */]);
+   ```
+
+4. **Avoid inline objects/functions in props**
+   ```jsx
+   // Bad - creates new object on every render
+   <Component style={{ color: 'red' }} onClick={() => {}} />
+   
+   // Good
+   const style = useMemo(() => ({ color: 'red' }), []);
+   const handleClick = useCallback(() => {}, []);
+   <Component style={style} onClick={handleClick} />
+   ```
+
+5. **Use React DevTools Profiler** to identify unnecessary re-renders
+
+## 2. State Management
+
+### Local State with Context API
+
+```jsx
+// ThemeContext.js
+import { createContext, useContext, useState } from 'react';
+
+const ThemeContext = createContext();
+
+export function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light');
+  
+  const toggleTheme = () => {
+    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+  };
+  
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      <div className={`app ${theme}`}>
+        {children}
+      </div>
+    </ThemeContext.Provider>
+  );
+}
+
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+}
+
+// App.js
+function App() {
+  return (
+    <ThemeProvider>
+      <Header />
+      <MainContent />
+      <Footer />
+    </ThemeProvider>
+  );
+}
+
+// Header.js
+function Header() {
+  const { theme, toggleTheme } = useTheme();
+  
+  return (
+    <header>
+      <h1>My App</h1>
+      <button onClick={toggleTheme}>
+        Switch to {theme === 'light' ? 'Dark' : 'Light'} Mode
+      </button>
+    </header>
+  );
+}
+```
+
+### Redux Toolkit Example
+
+```jsx
+// store.js
+import { configureStore, createSlice } from '@reduxjs/toolkit';
+
+const counterSlice = createSlice({
+  name: 'counter',
+  initialState: { value: 0 },
+  reducers: {
+    increment: state => {
+      state.value += 1;
+    },
+    decrement: state => {
+      state.value -= 1;
+    },
+    incrementByAmount: (state, action) => {
+      state.value += action.payload;
+    },
+  },
+});
+
+export const { increment, decrement, incrementByAmount } = counterSlice.actions;
+
+export const store = configureStore({
+  reducer: {
+    counter: counterSlice.reducer,
+  },
+});
+
+// App.js
+import { Provider, useSelector, useDispatch } from 'react-redux';
+import { store, increment, decrement, incrementByAmount } from './store';
+
+function Counter() {
+  const count = useSelector(state => state.counter.value);
+  const dispatch = useDispatch();
+
+  return (
+    <div>
+      <div>Count: {count}</div>
+      <button onClick={() => dispatch(increment())}>+</button>
+      <button onClick={() => dispatch(decrement())}>-</button>
+      <button onClick={() => dispatch(incrementByAmount(5))}>Add 5</button>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Provider store={store}>
+      <Counter />
+    </Provider>
+  );
+}
+```
+
+### Common Interview Questions
+
+#### 1. "When would you use Redux vs Context API?"
+
+**Answer:**
+- **Use Redux when:**
+  - You have large amounts of application state that are needed in many places
+  - State is updated frequently
+  - The logic to update that state may be complex
+  - You need to use middleware like Redux-Saga or Redux-Thunk
+  - You need time-travel debugging
+  - You're working on a large application with many developers
+
+- **Use Context API when:**
+  - You only need to pass data down a few levels
+  - Your state updates are simple
+  - You don't need middleware
+  - You're building a small to medium-sized application
+  - You want to avoid additional dependencies
+
+#### 2. "How does Redux middleware work?"
+
+**Answer:**
+Redux middleware provides a third-party extension point between dispatching an action and the moment it reaches the reducer. It's useful for logging, crash reporting, talking to an asynchronous API, routing, and more.
+
+Example of a custom logger middleware:
+
+```javascript
+const logger = store => next => action => {
+  console.group(action.type);
+  console.info('dispatching', action);
+  let result = next(action);
+  console.log('next state', store.getState());
+  console.groupEnd();
+  return result;
+};
+
+// Apply middleware when creating the store
+const store = createStore(
+  rootReducer,
+  applyMiddleware(logger, thunk, /* other middlewares */)
+);
+```
+
+## 3. Advanced Patterns
+
+### Compound Components
+
+```jsx
+import { createContext, useContext, useState } from 'react';
+
+const TabsContext = createContext();
+
+function Tabs({ children, defaultActiveKey }) {
+  const [activeKey, setActiveKey] = useState(defaultActiveKey);
+  
+  return (
+    <TabsContext.Provider value={{ activeKey, setActiveKey }}>
+      <div className="tabs">{children}</div>
+    </TabsContext.Provider>
+  );
+}
+
+function TabList({ children }) {
+  return <div className="tab-list">{children}</div>;
+}
+
+function Tab({ tabKey, children }) {
+  const { activeKey, setActiveKey } = useContext(TabsContext);
+  const isActive = activeKey === tabKey;
+  
+  return (
+    <button
+      className={`tab ${isActive ? 'active' : ''}`}
+      onClick={() => setActiveKey(tabKey)}
+    >
+      {children}
+    </button>
+  );
+}
+
+function TabPanels({ children }) {
+  return <div className="tab-panels">{children}</div>;
+}
+
+function TabPanel({ tabKey, children }) {
+  const { activeKey } = useContext(TabsContext);
+  return activeKey === tabKey ? <div className="tab-panel">{children}</div> : null;
+}
+
+// Usage
+function App() {
+  return (
+    <Tabs defaultActiveKey="home">
+      <TabList>
+        <Tab tabKey="home">Home</Tab>
+        <Tab tabKey="profile">Profile</Tab>
+        <Tab tabKey="settings">Settings</Tab>
+      </TabList>
+      
+      <TabPanels>
+        <TabPanel tabKey="home">
+          <h2>Welcome Home!</h2>
+          <p>This is the home tab content.</p>
+        </TabPanel>
+        <TabPanel tabKey="profile">
+          <h2>User Profile</h2>
+          <p>Edit your profile information here.</p>
+        </TabPanel>
+        <TabPanel tabKey="settings">
+          <h2>Settings</h2>
+          <p>Configure your application settings.</p>
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
+  );
+}
+```
+
+### Render Props Pattern
+
+```jsx
+class MouseTracker extends React.Component {
+  state = { x: 0, y: 0 };
+
+  handleMouseMove = (event) => {
+    this.setState({
+      x: event.clientX,
+      y: event.clientY
+    });
+  };
+
+  render() {
+    return (
+      <div style={{ height: '100vh' }} onMouseMove={this.handleMouseMove}>
+        {this.props.render(this.state)}
+      </div>
+    );
+  }
+}
+
+// Usage
+function App() {
+  return (
+    <div>
+      <h1>Move the mouse around!</h1>
+      <MouseTracker
+        render={({ x, y }) => (
+          <p>
+            The current mouse position is ({x}, {y})
+          </p>
+        )}
+      />
+    </div>
+  );
+}
+```
+
+### Common Interview Questions
+
+#### 1. "What are the differences between render props and custom hooks?"
+
+**Answer:**
+- **Render Props:**
+  - A pattern where a component's children is a function that returns React elements
+  - More flexible for UI composition
+  - Can lead to "wrapper hell" if overused
+  - Better when you need to render different UI based on the same logic
+
+- **Custom Hooks:**
+  - Functions that use React hooks internally
+  - Better for sharing stateful logic without affecting the component hierarchy
+  - Cleaner JSX as it doesn't add extra DOM nodes
+  - Better performance as it doesn't create new components
+
+#### 2. "How would you implement a custom hook for form handling?"
+
+**Answer:**
+```jsx
+function useForm(initialValues, validate) {
+  const [values, setValues] = useState(initialValues);
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setValues(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleSubmit = (onSubmit) => async (e) => {
+    e.preventDefault();
+    
+    // Run validation if provided
+    if (validate) {
+      const validationErrors = validate(values);
+      setErrors(validationErrors);
+      
+      if (Object.keys(validationErrors).length > 0) {
+        return;
+      }
+    }
+    
+    try {
+      setIsSubmitting(true);
+      await onSubmit(values);
+    } catch (error) {
+      console.error('Form submission error:', error);
+      setErrors(prev => ({
+        ...prev,
+        form: error.message || 'An error occurred'
+      }));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return {
+    values,
+    errors,
+    isSubmitting,
+    handleChange,
+    handleSubmit,
+    setValues,
+    setErrors,
+  };
+}
+
+// Usage
+function LoginForm() {
+  const {
+    values,
+    errors,
+    isSubmitting,
+    handleChange,
+    handleSubmit,
+  } = useForm(
+    { email: '', password: '' },
+    (values) => {
+      const errors = {};
+      if (!values.email) {
+        errors.email = 'Email is required';
+      } else if (!/\S+@\S+\.\S+/.test(values.email)) {
+        errors.email = 'Email is invalid';
+      }
+      if (!values.password) {
+        errors.password = 'Password is required';
+      } else if (values.password.length < 6) {
+        errors.password = 'Password must be at least 6 characters';
+      }
+      return errors;
+    }
+  );
+
+  const onSubmit = async (formData) => {
+    // Submit to API
+    console.log('Form submitted:', formData);
+    // await api.login(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <div>
+        <input
+          type="email"
+          name="email"
+          value={values.email}
+          onChange={handleChange}
+          placeholder="Email"
+        />
+        {errors.email && <div className="error">{errors.email}</div>}
+      </div>
+      <div>
+        <input
+          type="password"
+          name="password"
+          value={values.password}
+          onChange={handleChange}
+          placeholder="Password"
+        />
+        {errors.password && <div className="error">{errors.password}</div>}
+      </div>
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Logging in...' : 'Log In'}
+      </button>
+      {errors.form && <div className="error">{errors.form}</div>}
+    </form>
+  );
+}
+```
+
+## 4. React 18+ Features
+
+### Concurrent Features
+
+```jsx
+import { useState, useTransition, Suspense } from 'react';
+
+function App() {
+  const [isPending, startTransition] = useTransition();
+  const [tab, setTab] = useState('home');
+  
+  function selectTab(nextTab) {
+    // Mark any state updates inside as transitions
+    startTransition(() => {
+      setTab(nextTab);
+    });
+  }
+  
+  return (
+    <div>
+      <div style={{ opacity: isPending ? 0.5 : 1 }}>
+        <button onClick={() => selectTab('home')}>Home</button>
+        <button onClick={() => selectTab('about')}>About</button>
+        <button onClick={() => selectTab('contact')}>Contact</button>
+      </div>
+      
+      <Suspense fallback={<div>Loading...</div>}>
+        {tab === 'home' && <Home />}
+        {tab === 'about' && <About />}
+        {tab === 'contact' && <Contact />}
+      </Suspense>
+    </div>
+  );
+}
+```
+
+### Server Components
+
+```jsx
+// app/page.js - Next.js 13+ App Router
+import { Suspense } from 'react';
+import { getPosts } from './api';
+
+// This is a Server Component - runs only on the server
+export default function Page() {
+  return (
+    <div>
+      <h1>My Blog</h1>
+      <Suspense fallback={<div>Loading posts...</div>}>
+        <PostList />
+      </Suspense>
+    </div>
+  );
+}
+
+// This is also a Server Component
+async function PostList() {
+  // This runs on the server, not in the browser
+  const posts = await getPosts();
+  
+  return (
+    <ul>
+      {posts.map((post) => (
+        <li key={post.id}>
+          <h2>{post.title}</h2>
+          <p>{post.excerpt}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### Common Interview Questions
+
+#### 1. "What are the key features of React 18?"
+
+**Answer:**
+1. **Automatic Batching** - Multiple state updates are batched into a single re-render
+2. **Concurrent Rendering** - Interruptible rendering for better user experience
+3. **Transitions** - Mark updates as non-urgent with `startTransition`
+4. **Suspense on the Server** - Better server-side rendering with Suspense
+5. **New Root API** - `createRoot` instead of `ReactDOM.render`
+6. **Strict Mode Enhancements** - Simulates mounting, unmounting, and re-mounting components
+7. **Improved Suspense** - Better support for code splitting and data fetching
+
+#### 2. "How does Suspense work with data fetching?"
+
+**Answer:**
+Suspense lets components "wait" for something (like data) before rendering. When used with libraries that support Suspense (like React Query, SWR, or Relay), you can write components that read data as if it's already loaded.
+
+Example with React Query:
+
+```jsx
+import { Suspense } from 'react';
+import { useQuery, QueryClient, QueryClientProvider } from 'react-query';
+
+const queryClient = new QueryClient();
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Suspense fallback={<div>Loading user data...</div>}>
+        <UserProfile userId={1} />
+      </Suspense>
+    </QueryClientProvider>
+  );
+}
+
+function UserProfile({ userId }) {
+  // This will suspend until the data is available
+  const { data: user } = useQuery(
+    ['user', userId],
+    () => fetchUser(userId),
+    { suspense: true }
+  );
+  
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>Email: {user.email}</p>
+    </div>
+  );
+}
+```
+
+## 5. Testing React Applications
+
+### Component Testing with React Testing Library
+
+```jsx
+// Button.js
+function Button({ onClick, children, disabled = false }) {
+  return (
+    <button 
+      onClick={onClick} 
+      disabled={disabled}
+      data-testid="custom-button"
+    >
+      {children}
+    </button>
+  );
+}
+
+// Button.test.js
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import Button from './Button';
+
+describe('Button Component', () => {
+  test('renders button with correct text', () => {
+    render(<Button>Click me</Button>);
+    const button = screen.getByRole('button', { name: /click me/i });
+    expect(button).toBeInTheDocument();
+  });
+
+  test('calls onClick prop when clicked', () => {
+    const handleClick = jest.fn();
+    render(<Button onClick={handleClick}>Click me</Button>);
+    
+    const button = screen.getByText(/click me/i);
+    fireEvent.click(button);
+    
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  test('is disabled when disabled prop is true', () => {
+    render(<Button disabled>Disabled Button</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toBeDisabled();
+  });
+
+  test('matches snapshot', () => {
+    const { asFragment } = render(<Button>Snapshot Test</Button>);
+    expect(asFragment()).toMatchSnapshot();
+  });
+});
+```
+
+### Mocking API Calls
+
+```jsx
+// UserProfile.js
+import { useState, useEffect } from 'react';
+import { getUser } from './api';
+
+export function UserProfile({ userId }) {
+  const [user, setUser] = useState(null);
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await getUser(userId);
+        setUser(userData);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [userId]);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!user) return <div>No user found</div>;
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>Email: {user.email}</p>
+      <p>Role: {user.role}</p>
+    </div>
+  );
+}
+
+// UserProfile.test.js
+import { render, screen } from '@testing-library/react';
+import { UserProfile } from './UserProfile';
+import { getUser } from './api';
+
+// Mock the API module
+jest.mock('./api');
+
+describe('UserProfile', () => {
+  const mockUser = {
+    id: 1,
+    name: 'John Doe',
+    email: 'john@example.com',
+    role: 'admin'
+  };
+
+  test('displays user data after successful fetch', async () => {
+    // Setup mock implementation
+    getUser.mockResolvedValueOnce(mockUser);
+    
+    render(<UserProfile userId={1} />);
+    
+    // Initially shows loading
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    
+    // After data loads
+    const userName = await screen.findByText('John Doe');
+    expect(userName).toBeInTheDocument();
+    expect(screen.getByText('Email: john@example.com')).toBeInTheDocument();
+    expect(screen.getByText('Role: admin')).toBeInTheDocument();
+  });
+
+  test('displays error message when fetch fails', async () => {
+    // Setup mock to reject
+    getUser.mockRejectedValueOnce(new Error('Failed to fetch user'));
+    
+    render(<UserProfile userId={1} />);
+    
+    // Should show error message
+    const errorMessage = await screen.findByText(/error: failed to fetch user/i);
+    expect(errorMessage).toBeInTheDocument();
+  });
+});
+```
+
+### Common Interview Questions
+
+#### 1. "What are the principles of testing React applications?"
+
+**Answer:**
+1. **Test behavior, not implementation** - Test what the component does, not how it does it
+2. **Use the Testing Library** - Favor user-centric testing utilities
+3. **Write accessible tests** - Use semantic queries that work with accessibility features
+4. **Test user flows, not implementation details** - Focus on what users see and do
+5. **Mock external dependencies** - Isolate components from external services
+6. **Keep tests maintainable** - Avoid brittle tests that break with UI changes
+7. **Test error states** - Ensure your app handles errors gracefully
+
+#### 2. "How would you test a custom hook?"
+
+**Answer:**
+You can test custom hooks using `@testing-library/react-hooks` or by creating a test component that uses the hook.
+
+```jsx
+// useCounter.js
+export function useCounter(initialValue = 0) {
+  const [count, setCount] = useState(initialValue);
+  
+  const increment = () => setCount(c => c + 1);
+  const decrement = () => setCount(c => c - 1);
+  const reset = () => setCount(initialValue);
+  
+  return { count, increment, decrement, reset };
+}
+
+// useCounter.test.js
+import { renderHook, act } from '@testing-library/react-hooks';
+import { useCounter } from './useCounter';
+
+describe('useCounter', () => {
+  test('should use counter', () => {
+    const { result } = renderHook(() => useCounter());
+    
+    expect(result.current.count).toBe(0);
+    expect(typeof result.current.increment).toBe('function');
+    expect(typeof result.current.decrement).toBe('function');
+    expect(typeof result.current.reset).toBe('function');
+  });
+  
+  test('should increment counter', () => {
+    const { result } = renderHook(() => useCounter(5));
+    
+    act(() => {
+      result.current.increment();
+    });
+    
+    expect(result.current.count).toBe(6);
+  });
+  
+  test('should reset counter', () => {
+    const { result, rerender } = renderHook(
+      ({ initialValue }) => useCounter(initialValue),
+      { initialProps: { initialValue: 10 } }
+    );
+    
+    // Change counter
+    act(() => {
+      result.current.increment();
+      result.current.increment();
+    });
+    
+    // Reset should go back to initial value
+    act(() => {
+      result.current.reset();
+    });
+    
+    expect(result.current.count).toBe(10);
+    
+    // Test with new initial value
+    rerender({ initialValue: 20 });
+    act(() => {
+      result.current.reset();
+    });
+    
+    expect(result.current.count).toBe(20);
+  });
+});
+```
+
+## 6. Performance Optimization
+
+### Code Splitting with React.lazy and Suspense
+
+```jsx
+import { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+// Lazy load components
+const Home = lazy(() => import('./pages/Home'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
+
+function App() {
+  return (
+    <Router>
+      <Suspense fallback={<div>Loading...</div>}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+        </Routes>
+      </Suspense>
+    </Router>
+  );
+}
+```
+
+### Virtualized Lists with react-window
+
+```jsx
+import { FixedSizeList as List } from 'react-window';
+
+const Row = ({ index, style }) => (
+  <div style={style} className={index % 2 ? 'odd' : 'even'}>
+    Row {index}
+  </div>
+);
+
+function VirtualizedList() {
+  return (
+    <List
+      height={400}
+      itemCount={1000}
+      itemSize={35}
+      width={300}
+    >
+      {Row}
+    </List>
+  );
+}
+```
+
+### Common Interview Questions
+
+#### 1. "How would you optimize a slow React application?"
+
+**Answer:**
+1. **Code Splitting** - Use React.lazy and Suspense to load only necessary code
+2. **Memoization** - Use React.memo, useMemo, and useCallback to prevent unnecessary re-renders
+3. **Virtualization** - For large lists, use libraries like react-window or react-virtualized
+4. **Bundle Analysis** - Use tools like webpack-bundle-analyzer to identify large dependencies
+5. **Optimize Images** - Use modern formats (WebP), lazy loading, and responsive images
+6. **Use Production Build** - Ensure you're using the production build for best performance
+7. **Avoid Inline Functions/Objects** - They cause unnecessary re-renders
+8. **Use React Profiler** - Identify performance bottlenecks
+
+#### 2. "What is the difference between useMemo and useCallback?"
+
+**Answer:**
+- **useMemo** is used to memoize the result of a computation. It will only recompute the memoized value when one of the dependencies has changed.
+  ```jsx
+  const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b]);
+  ```
+
+- **useCallback** is used to memoize callback functions. It will return a memoized version of the callback that only changes if one of the dependencies has changed.
+  ```jsx
+  const memoizedCallback = useCallback(() => {
+    doSomething(a, b);
+  }, [a, b]);
+  ```
+
+In essence:
+- `useMemo` is for values
+- `useCallback` is for functions
+
+Both are used for performance optimization to prevent unnecessary recalculations and re-renders.
 
 ## 1. Component Lifecycle/Hooks
 

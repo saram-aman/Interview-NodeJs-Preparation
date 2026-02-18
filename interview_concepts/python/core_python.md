@@ -2,6 +2,22 @@
 
 This comprehensive guide is structured to help you master Python concepts from fundamentals to advanced topics, preparing you for interviews at all experience levels up to 6 years. Each section builds upon the previous one, with practical examples and common interview questions.
 
+> **Note:** This guide includes executable code examples that you can run and experiment with. Look for the 🚀 emoji for interactive examples.
+
+## Quick Navigation
+- [Python Fundamentals](#1-python-fundamentals)
+- [Data Structures](#2-data-structures)
+- [Algorithms](#3-algorithms)
+- [OOP Concepts](#4-object-oriented-programming-oop)
+- [Advanced Python](#5-advanced-python-concepts)
+- [Concurrency](#6-concurrency-and-parallelism)
+- [Memory Management](#7-memory-management)
+- [Testing & Debugging](#8-testing-and-debugging)
+- [Design Patterns](#9-design-patterns)
+- [System Design](#10-system-design-with-python)
+- [Production Python](#11-python-in-production)
+- [Real-world Scenarios](#12-real-world-scenarios-and-case-studies)
+
 ## Table of Contents
 1. [Python Fundamentals](#1-python-fundamentals)
 2. [Data Structures](#2-data-structures)
@@ -21,10 +37,148 @@ This comprehensive guide is structured to help you master Python concepts from f
 ## 1. Python Fundamentals
 
 ### Core Concepts
-- **Variables and Data Types**
-  - Mutable vs Immutable types
-  - Type hints and type checking (mypy)
-  - Type conversion and coercion
+
+#### Variables and Data Types
+
+```python
+# 🚀 Mutable vs Immutable Types
+# Mutable: list, dict, set, bytearray
+# Immutable: int, float, str, tuple, frozenset, bytes
+
+def demonstrate_mutability():
+    # Immutable example (int)
+    x = 10
+    y = x  # y is a new reference to the same object
+    x += 5  # Creates a new object, doesn't modify the original
+    print(f"x: {x}, y: {y}")  # x: 15, y: 10
+    
+    # Mutable example (list)
+    list1 = [1, 2, 3]
+    list2 = list1  # Both reference the same list
+    list1.append(4)  # Modifies the original list
+    print(f"list1: {list1}, list2: {list2}")  # Both show [1, 2, 3, 4]
+
+# Type hints and type checking
+def greet(name: str, age: int) -> str:
+    """Greet a person with their name and age."""
+    return f"Hello {name}, you are {age} years old!"
+
+# Type conversion examples
+def type_conversion():
+    # String to int/float
+    num_str = "42"
+    num_int = int(num_str)
+    num_float = float(num_str)
+    
+    # Int/float to string
+    str_num = str(42)
+    
+    # List to tuple/set
+    my_list = [1, 2, 2, 3]
+    my_tuple = tuple(my_list)
+    my_set = set(my_list)  # Removes duplicates
+    
+    # Dictionary from list of tuples
+    pairs = [('a', 1), ('b', 2)]
+    my_dict = dict(pairs)
+    
+    return {
+        'num_int': num_int,
+        'num_float': num_float,
+        'str_num': str_num,
+        'my_tuple': my_tuple,
+        'my_set': my_set,
+        'my_dict': my_dict
+    }
+```
+
+### Common Interview Questions
+
+#### 1. "What's the difference between `is` and `==` in Python?"
+
+**Answer:**
+- `==` checks for value equality (equivalence)
+- `is` checks for identity (same object in memory)
+
+```python
+def compare_equality():
+    # Small integers are cached in Python (-5 to 256)
+    a = 256
+    b = 256
+    print(a == b)  # True (same value)
+    print(a is b)   # True (same object due to integer caching)
+    
+    # Larger integers are not cached
+    x = 1000
+    y = 1000
+    print(x == y)  # True (same value)
+    print(x is y)   # False (different objects)
+    
+    # For mutable objects like lists
+    list1 = [1, 2, 3]
+    list2 = [1, 2, 3]
+    print(list1 == list2)  # True (same content)
+    print(list1 is list2)   # False (different objects)
+```
+
+#### 2. "Explain Python's GIL (Global Interpreter Lock)"
+
+**Answer:**
+- The GIL is a mutex that protects access to Python objects
+- Only one thread can execute Python bytecode at a time
+- Impacts CPU-bound multi-threaded programs
+- I/O-bound programs are less affected
+- Ways to work around GIL:
+  - Use multiprocessing instead of threading for CPU-bound tasks
+  - Use C extensions (like NumPy) that release the GIL
+  - Use asyncio for I/O-bound concurrency
+  - Consider alternative Python implementations (Jython, IronPython) without GIL
+
+```python
+import threading
+import time
+
+def cpu_bound_task():
+    count = 0
+    for _ in range(10_000_000):
+        count += 1
+
+def demonstrate_gil_impact():
+    # Single-threaded
+    start = time.time()
+    for _ in range(4):
+        cpu_bound_task()
+    print(f"Single-threaded: {time.time() - start:.2f} seconds")
+    
+    # Multi-threaded (GIL limits true parallelism)
+    threads = []
+    start = time.time()
+    for _ in range(4):
+        t = threading.Thread(target=cpu_bound_task)
+        threads.append(t)
+        t.start()
+    
+    for t in threads:
+        t.join()
+    
+    print(f"Multi-threaded: {time.time() - start:.2f} seconds")
+    
+# For true parallelism, use multiprocessing
+import multiprocessing
+
+def demonstrate_multiprocessing():
+    processes = []
+    start = time.time()
+    for _ in range(4):
+        p = multiprocessing.Process(target=cpu_bound_task)
+        processes.append(p)
+        p.start()
+    
+    for p in processes:
+        p.join()
+    
+    print(f"Multi-processing: {time.time() - start:.2f} seconds")
+```
 
 ### Control Structures
 - **Conditionals and Loops**
@@ -64,10 +218,242 @@ This comprehensive guide is structured to help you master Python concepts from f
 ## 2. Data Structures
 
 ### Built-in Data Structures
-- **Lists**
-  - List operations and methods
-  - List comprehensions
-  - Time and space complexity of operations
+
+#### Lists
+
+```python
+def demonstrate_lists():
+    # Creating lists
+    numbers = [1, 2, 3, 4, 5]
+    mixed = [1, "hello", 3.14, [1, 2, 3]]
+    
+    # List operations
+    numbers.append(6)           # Add to end
+    numbers.insert(0, 0)        # Insert at index
+    numbers.extend([7, 8, 9])   # Extend with another list
+    
+    # List slicing [start:stop:step]
+    first_three = numbers[:3]     # [0, 1, 2]
+    even_indices = numbers[::2]   # Every other element
+    reversed_list = numbers[::-1] # Reverse the list
+    
+    # List comprehensions (more efficient than loops)
+    squares = [x**2 for x in numbers if x % 2 == 0]
+    
+    # Common methods
+    count = numbers.count(5)      # Count occurrences
+    index = numbers.index(3)      # Find index of value
+    numbers.sort(reverse=True)    # In-place sort
+    
+    # Time complexities:
+    # - Access by index: O(1)
+    # - Append/pop from end: O(1)
+    # - Insert/delete from middle: O(n)
+    # - Search: O(n)
+    
+    return {
+        'first_three': first_three,
+        'even_indices': even_indices,
+        'reversed': reversed_list,
+        'squares': squares,
+        'count_5': count,
+        'index_of_3': index
+    }
+```
+
+#### Dictionaries
+
+```python
+def demonstrate_dictionaries():
+    # Creating dictionaries
+    person = {
+        'name': 'Alice',
+        'age': 30,
+        'skills': ['Python', 'JavaScript', 'SQL']
+    }
+    
+    # Dictionary operations
+    person['email'] = 'alice@example.com'  # Add/update
+    age = person.get('age')                # Safe get
+    name = person.pop('name')              # Remove and return
+    
+    # Dictionary comprehensions
+    squares = {x: x**2 for x in range(5)}  # {0: 0, 1: 1, 2: 4, 3: 9, 4: 16}
+    
+    # Dictionary views
+    keys = person.keys()     # View of keys
+    values = person.values() # View of values
+    items = person.items()   # View of (key, value) pairs
+    
+    # Default dictionaries
+    from collections import defaultdict
+    word_counts = defaultdict(int)
+    for word in ['apple', 'banana', 'apple', 'orange']:
+        word_counts[word] += 1
+    
+    # Time complexities:
+    # - Get/set item: O(1) average case
+    # - Delete item: O(1) average case
+    # - Check membership: O(1) average case
+    
+    return {
+        'person': person,
+        'squares': squares,
+        'word_counts': dict(word_counts)
+    }
+```
+
+### Advanced Data Structures
+
+#### Collections Module
+
+```python
+def demonstrate_collections():
+    from collections import namedtuple, deque, Counter, defaultdict, OrderedDict
+    
+    # Named tuples (immutable)
+    Point = namedtuple('Point', ['x', 'y'])
+    p = Point(10, y=20)
+    
+    # Deque (double-ended queue)
+    dq = deque([1, 2, 3])
+    dq.appendleft(0)  # O(1)
+    dq.pop()          # O(1)
+    
+    # Counter
+    words = ['apple', 'banana', 'apple', 'orange', 'banana', 'apple']
+    word_count = Counter(words)
+    most_common = word_count.most_common(2)  # [('apple', 3), ('banana', 2)]
+    
+    # Default dictionary with list as default
+    dd = defaultdict(list)
+    for word in words:
+        dd[len(word)].append(word)
+    
+    # OrderedDict (maintains insertion order in Python 3.7+)
+    # In Python 3.7+, regular dict maintains order
+    return {
+        'point': p,
+        'deque': list(dq),
+        'word_count': word_count,
+        'grouped_words': dict(dd)
+    }
+```
+
+### Common Interview Questions
+
+#### 1. "How would you implement a LRU (Least Recently Used) cache?"
+
+**Answer:**
+Use `collections.OrderedDict` (or `dict` in Python 3.7+) to maintain access order.
+
+```python
+from collections import OrderedDict
+
+class LRUCache:
+    def __init__(self, capacity: int):
+        self.cache = OrderedDict()
+        self.capacity = capacity
+    
+    def get(self, key: int) -> int:
+        if key not in self.cache:
+            return -1
+        
+        # Move the accessed item to the end
+        self.cache.move_to_end(key)
+        return self.cache[key]
+    
+    def put(self, key: int, value: int) -> None:
+        if key in self.cache:
+            # Update existing key and move to end
+            self.cache.move_to_end(key)
+        else:
+            if len(self.cache) >= self.capacity:
+                # Remove the first item (least recently used)
+                self.cache.popitem(last=False)
+        
+        self.cache[key] = value
+
+# Usage
+cache = LRUCache(2)
+cache.put(1, 1)
+cache.put(2, 2)
+print(cache.get(1))    # returns 1
+cache.put(3, 3)        # evicts key 2
+print(cache.get(2))    # returns -1 (not found)
+```
+
+#### 2. "How would you find the first non-repeating character in a string?"
+
+**Answer:**
+Use a dictionary to count character frequencies, then find the first character with count 1.
+
+```python
+def first_non_repeating_char(s: str) -> str:
+    from collections import Counter
+    
+    # Count character frequencies
+    char_count = Counter(s)
+    
+    # Find first character with count 1
+    for char in s:
+        if char_count[char] == 1:
+            return char
+    
+    return ""  # or None if no non-repeating character
+
+# Test cases
+assert first_non_repeating_char("leetcode") == "l"
+assert first_non_repeating_char("loveleetcode") == "v"
+assert first_non_repeating_char("aabbcc") == ""
+```
+
+#### 3. "Implement a queue using two stacks"
+
+**Answer:**
+Use one stack for enqueue operations and another for dequeue operations.
+
+```python
+class QueueWithStacks:
+    def __init__(self):
+        self.enqueue_stack = []
+        self.dequeue_stack = []
+    
+    def enqueue(self, x: int) -> None:
+        self.enqueue_stack.append(x)
+    
+    def dequeue(self) -> int:
+        self._move_elements()
+        if not self.dequeue_stack:
+            raise IndexError("dequeue from empty queue")
+        return self.dequeue_stack.pop()
+    
+    def peek(self) -> int:
+        self._move_elements()
+        if not self.dequeue_stack:
+            raise IndexError("peek from empty queue")
+        return self.dequeue_stack[-1]
+    
+    def empty(self) -> bool:
+        return not (self.enqueue_stack or self.dequeue_stack)
+    
+    def _move_elements(self) -> None:
+        if not self.dequeue_stack:
+            while self.enqueue_stack:
+                self.dequeue_stack.append(self.enqueue_stack.pop())
+
+# Usage
+q = QueueWithStacks()
+q.enqueue(1)
+q.enqueue(2)
+print(q.peek())    # 1
+print(q.dequeue()) # 1
+print(q.empty())   # False
+print(q.dequeue()) # 2
+print(q.empty())   # True
+```
+
+## 3. Object-Oriented Programming
 
 - **Tuples**
   - Immutable sequences
@@ -104,9 +490,363 @@ This comprehensive guide is structured to help you master Python concepts from f
 ## 3. Algorithms
 
 ### Algorithm Analysis
-- Time and space complexity (Big-O notation)
-- Best, average, and worst case analysis
-- Amortized analysis
+
+```python
+def analyze_algorithms():
+    """
+    Big-O Notation Cheat Sheet:
+    
+    O(1)     - Constant time (array access, hash table operations)
+    O(log n) - Logarithmic time (binary search)
+    O(n)     - Linear time (iterating through a list)
+    O(n log n) - Linearithmic time (efficient sorting algorithms)
+    O(n²)    - Quadratic time (nested loops, bubble sort)
+    O(2^n)   - Exponential time (recursive Fibonacci)
+    O(n!)    - Factorial time (traveling salesman brute force)
+    """
+    
+    # Example of different time complexities
+    from timeit import timeit
+    import random
+    
+    # O(1) - Constant time
+    def constant_time(n):
+        return n[0]  # Accessing first element
+    
+    # O(n) - Linear time
+    def linear_time(n):
+        total = 0
+        for i in n:
+            total += i
+        return total
+    
+    # O(n²) - Quadratic time
+    def quadratic_time(n):
+        pairs = []
+        for i in n:
+            for j in n:
+                pairs.append((i, j))
+        return pairs
+    
+    # O(log n) - Binary search
+    def binary_search(arr, target):
+        left, right = 0, len(arr) - 1
+        while left <= right:
+            mid = (left + right) // 2
+            if arr[mid] == target:
+                return mid
+            elif arr[mid] < target:
+                left = mid + 1
+            else:
+                right = mid - 1
+        return -1
+    
+    # Test with different input sizes
+    small_input = list(range(100))
+    medium_input = list(range(1000))
+    large_input = list(range(10000))
+    
+    # Time the functions
+    results = {}
+    
+    # O(1) - Should be roughly constant
+    results['constant_small'] = timeit(lambda: constant_time(small_input), number=1000)
+    results['constant_large'] = timeit(lambda: constant_time(large_input), number=1000)
+    
+    # O(n) - Should scale linearly with input size
+    results['linear_small'] = timeit(lambda: linear_time(small_input), number=100)
+    results['linear_large'] = timeit(lambda: linear_time(large_input), number=100)
+    
+    # O(n²) - Should scale quadratically
+    results['quadratic_small'] = timeit(lambda: quadratic_time(small_input[:10]), number=10)
+    results['quadratic_medium'] = timeit(lambda: quadratic_time(medium_input[:30]), number=10)
+    
+    # O(log n) - Binary search test
+    sorted_large = sorted(large_input)
+    results['binary_search'] = timeit(
+        lambda: binary_search(sorted_large, random.choice(sorted_large)), 
+        number=1000
+    )
+    
+    return results
+```
+
+### Common Sorting Algorithms
+
+```python
+def demonstrate_sorting():
+    # Sample data
+    numbers = [64, 34, 25, 12, 22, 11, 90]
+    
+    # 1. Bubble Sort (O(n²) time, O(1) space)
+    def bubble_sort(arr):
+        n = len(arr)
+        for i in range(n):
+            # Last i elements are already in place
+            for j in range(0, n-i-1):
+                if arr[j] > arr[j+1]:
+                    arr[j], arr[j+1] = arr[j+1], arr[j]
+        return arr
+    
+    # 2. Merge Sort (O(n log n) time, O(n) space)
+    def merge_sort(arr):
+        if len(arr) <= 1:
+            return arr
+            
+        mid = len(arr) // 2
+        left = merge_sort(arr[:mid])
+        right = merge_sort(arr[mid:])
+        
+        return merge(left, right)
+    
+    def merge(left, right):
+        result = []
+        i = j = 0
+        
+        while i < len(left) and j < len(right):
+            if left[i] <= right[j]:
+                result.append(left[i])
+                i += 1
+            else:
+                result.append(right[j])
+                j += 1
+        
+        result.extend(left[i:])
+        result.extend(right[j:])
+        return result
+    
+    # 3. Quick Sort (O(n log n) avg, O(n²) worst, O(log n) space)
+    def quick_sort(arr):
+        if len(arr) <= 1:
+            return arr
+        
+        pivot = arr[len(arr) // 2]
+        left = [x for x in arr if x < pivot]
+        middle = [x for x in arr if x == pivot]
+        right = [x for x in arr if x > pivot]
+        
+        return quick_sort(left) + middle + quick_sort(right)
+    
+    # 4. Built-in Timsort (hybrid of merge sort and insertion sort)
+    builtin_sorted = sorted(numbers)
+    
+    return {
+        'bubble_sort': bubble_sort(numbers.copy()),
+        'merge_sort': merge_sort(numbers.copy()),
+        'quick_sort': quick_sort(numbers.copy()),
+        'builtin_sorted': builtin_sorted
+    }
+```
+
+### Graph Algorithms
+
+```python
+def demonstrate_graph_algorithms():
+    from collections import defaultdict, deque
+    
+    # Graph representation (adjacency list)
+    graph = {
+        'A': ['B', 'C'],
+        'B': ['D', 'E'],
+        'C': ['F'],
+        'D': [],
+        'E': ['F'],
+        'F': []
+    }
+    
+    # 1. Depth-First Search (DFS)
+    def dfs(graph, start, visited=None):
+        if visited is None:
+            visited = set()
+        
+        visited.add(start)
+        result = [start]
+        
+        for neighbor in graph[start]:
+            if neighbor not in visited:
+                result.extend(dfs(graph, neighbor, visited))
+        
+        return result
+    
+    # 2. Breadth-First Search (BFS)
+    def bfs(graph, start):
+        visited = set()
+        queue = deque([start])
+        result = []
+        
+        while queue:
+            vertex = queue.popleft()
+            if vertex not in visited:
+                visited.add(vertex)
+                result.append(vertex)
+                queue.extend([n for n in graph[vertex] if n not in visited])
+        
+        return result
+    
+    # 3. Dijkstra's Algorithm (shortest path)
+    def dijkstra(graph, start):
+        import heapq
+        
+        # Initialize distances with infinity
+        distances = {node: float('infinity') for node in graph}
+        distances[start] = 0
+        
+        # Priority queue: (distance, node)
+        pq = [(0, start)]
+        
+        while pq:
+            current_distance, current_node = heapq.heappop(pq)
+            
+            # Skip if we found a better path already
+            if current_distance > distances[current_node]:
+                continue
+            
+            for neighbor, weight in graph[current_node].items():
+                distance = current_distance + weight
+                
+                # If we found a shorter path to the neighbor
+                if distance < distances[neighbor]:
+                    distances[neighbor] = distance
+                    heapq.heappush(pq, (distance, neighbor))
+        
+        return distances
+    
+    # Test with a weighted graph
+    weighted_graph = {
+        'A': {'B': 1, 'C': 4},
+        'B': {'A': 1, 'C': 2, 'D': 5},
+        'C': {'A': 4, 'B': 2, 'D': 1},
+        'D': {'B': 5, 'C': 1}
+    }
+    
+    return {
+        'dfs': dfs(graph, 'A'),
+        'bfs': bfs(graph, 'A'),
+        'dijkstra': dijkstra(weighted_graph, 'A')
+    }
+```
+
+### Common Interview Questions
+
+#### 1. "Implement a function to check if a string has all unique characters"
+
+**Answer:**
+```python
+def has_unique_chars(s: str) -> bool:
+    # Solution 1: Using set (O(n) time, O(1) space - fixed character set)
+    return len(set(s)) == len(s)
+    
+    # Solution 2: Using a set (explicit version)
+    seen = set()
+    for char in s:
+        if char in seen:
+            return False
+        seen.add(char)
+    return True
+    
+    # Solution 3: Without additional data structures (O(n²) time, O(1) space)
+    # for i in range(len(s)):
+    #     if s[i] in s[i+1:]:
+    #         return False
+    # return True
+
+# Test cases
+assert has_unique_chars("abcdef") == True
+assert has_unique_chars("hello") == False
+assert has_unique_chars("") == True
+```
+
+#### 2. "Find the first missing positive integer in an unsorted array"
+
+**Answer:**
+```python
+def first_missing_positive(nums):
+    """
+    Given an unsorted integer array, find the smallest missing positive integer.
+    Time: O(n), Space: O(1)
+    """
+    n = len(nums)
+    
+    # Base case
+    if 1 not in nums:
+        return 1
+    
+    # Replace negative numbers, zeros, and numbers > n with 1
+    for i in range(n):
+        if nums[i] <= 0 or nums[i] > n:
+            nums[i] = 1
+    
+    # Use index as a hash key and number sign as a presence indicator
+    for i in range(n):
+        a = abs(nums[i])
+        # If you meet number a in the array, change the sign of a-th element
+        if a == n:
+            nums[0] = -abs(nums[0])
+        else:
+            nums[a] = -abs(nums[a])
+    
+    # The first index with positive number is the answer
+    for i in range(1, n):
+        if nums[i] > 0:
+            return i
+    
+    if nums[0] > 0:
+        return n
+    
+    return n + 1
+
+# Test cases
+assert first_missing_positive([1, 2, 0]) == 3
+assert first_missing_positive([3, 4, -1, 1]) == 2
+assert first_missing_positive([7, 8, 9, 11, 12]) == 1
+```
+
+#### 3. "Implement a function to serialize and deserialize a binary tree"
+
+**Answer:**
+```python
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+class Codec:
+    def serialize(self, root):
+        """Encodes a tree to a single string."""
+        def rserialize(node, string):
+            if not node:
+                string += 'None,'
+            else:
+                string += str(node.val) + ','
+                string = rserialize(node.left, string)
+                string = rserialize(node.right, string)
+            return string
+        
+        return rserialize(root, '')
+    
+    def deserialize(self, data):
+        """Decodes your encoded data to tree."""
+        def rdeserialize(l):
+            if l[0] == 'None':
+                l.pop(0)
+                return None
+            
+            root = TreeNode(int(l[0]))
+            l.pop(0)
+            root.left = rdeserialize(l)
+            root.right = rdeserialize(l)
+            return root
+        
+        data_list = data.split(',')
+        root = rdeserialize(data_list)
+        return root
+
+# Usage
+# Your Codec object will be instantiated and called as such:
+# codec = Codec()
+# codec.deserialize(codec.serialize(root))
+```
 
 ### Sorting Algorithms
 - Comparison-based sorts (Bubble, Selection, Insertion, Merge, Quick, Heap)

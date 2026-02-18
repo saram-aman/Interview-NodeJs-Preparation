@@ -6,9 +6,18 @@ This document outlines key concepts and common interview questions related to No
 
 **What are Buffers?**
 
-* Buffers are a way to represent a fixed-size chunk of memory outside of the V8 JavaScript heap. They're used to handle binary data, such as images, audio, and network streams.
-* JavaScript strings are encoded in UTF-8, which is fine for text, but binary data requires a different representation.
-* Buffers are part of Node.js's core and are essential for working with file systems, network protocols, and other I/O operations.
+* Buffers are a fundamental part of Node.js that provide a way to work with binary data directly. They represent a fixed-size chunk of memory allocated outside of the V8 JavaScript heap, which is crucial for handling raw binary data efficiently.
+* Unlike JavaScript strings which are encoded in UTF-8 and limited to text, Buffers can handle any type of binary data including images, audio files, network packets, and more.
+* Key characteristics:
+  - Fixed size allocation in memory
+  - Global object in Node.js (no need to require)
+  - Similar to arrays of integers but work on raw memory outside V8 heap
+  - Essential for I/O operations, network communication, and file system operations
+* Common use cases include:
+  - Reading/writing to the filesystem
+  - Handling TCP streams and network protocols
+  - Processing binary protocols and file formats
+  - Working with cryptography and hashing algorithms
 
 **Key Concepts:**
 
@@ -20,16 +29,86 @@ This document outlines key concepts and common interview questions related to No
 **Interview Questions:**
 
 * "What are Buffers and why are they needed in Node.js?"
-  - Answer: Buffers are raw memory allocations outside V8's heap, used for handling binary data like files, network packets, and images efficiently in Node.js.
+  - Answer: Buffers are raw memory allocations outside V8's heap that provide a way to work with binary data directly. They are essential in Node.js because:
+    1. JavaScript strings are Unicode-based and not suitable for handling binary data
+    2. They enable efficient handling of I/O operations with binary data
+    3. They allow working with TCP streams and file system operations
+    4. They're crucial for implementing protocols and working with binary file formats
+    5. They provide better performance for large data operations compared to strings
+  Example use cases include reading image files, handling network packets, and processing binary protocols.
 
 * "Explain the difference between `Buffer.alloc()` and `Buffer.allocUnsafe()`."
-  - Answer: Buffer.alloc() initializes memory with zeros making it safe but slower, while Buffer.allocUnsafe() is faster but may contain old memory data.
+  - Answer: 
+    - `Buffer.alloc(size)`: 
+      - Allocates a new Buffer of the specified size
+      - The memory is initialized (filled with zeros by default)
+      - Slower but safer as it ensures no sensitive data leakage
+      - Recommended for most use cases where security is important
+      
+    - `Buffer.allocUnsafe(size)`: 
+      - Allocates a new Buffer of the specified size
+      - The memory is uninitialized (may contain old data)
+      - Faster as it skips memory initialization
+      - Potentially exposes sensitive data if not properly initialized
+      - Should only be used when performance is critical and you'll immediately overwrite the buffer
+      
+    Best practice: Always use `Buffer.alloc()` unless you have a specific performance requirement and can guarantee you'll write to the entire buffer before reading from it.
 
 * "How do you convert a Buffer to a string and vice versa?"
-  - Answer: Use buffer.toString(encoding) to convert Buffer to string, and Buffer.from(string, encoding) to convert string to Buffer. Default encoding is UTF-8.
+  - Answer: 
+    - **Buffer to String**: 
+      ```javascript
+      const buf = Buffer.from('hello', 'utf8');
+      const str = buf.toString('utf8'); // 'hello'
+      ```
+      Supported encodings: 'utf8', 'ascii', 'utf16le', 'ucs2', 'base64', 'base64url', 'latin1', 'binary', 'hex'
+      
+    - **String to Buffer**:
+      ```javascript
+      const str = 'hello';
+      const buf = Buffer.from(str, 'utf8'); // Creates a Buffer
+      ```
+      
+    - **Important Notes**:
+      - Always specify the encoding explicitly for clarity
+      - The default encoding is 'utf8' if not specified
+      - Be cautious with 'binary' encoding as it's being deprecated in favor of 'latin1'
+      - For binary data, consider using 'hex' or 'base64' encodings
+      - When working with text, always ensure consistent encoding between Buffer and String conversions
 
 * "Describe a scenario where you would use Buffers."
-  - Answer: When reading files, handling network protocols, or processing images where raw binary data needs to be manipulated directly.
+  - Answer: 
+    **Scenario 1: File Processing**
+    When building a service that processes image uploads, you'd use Buffers to:
+    - Read the uploaded file data
+    - Resize or modify the image
+    - Save it to disk or cloud storage
+
+    **Scenario 2: Network Communication**
+    When implementing a custom protocol or working with raw TCP/UDP:
+    ```javascript
+    const net = require('net');
+    const server = net.createServer((socket) => {
+      socket.on('data', (data) => {
+        // data is a Buffer containing raw bytes
+        const buffer = Buffer.from(data);
+        // Process the binary protocol
+      });
+    });
+    ```
+
+    **Scenario 3: Cryptography**
+    When working with hashing or encryption:
+    ```javascript
+    const crypto = require('crypto');
+    const hash = crypto.createHash('sha256');
+    const data = Buffer.from('sensitive data');
+    hash.update(data);
+    const digest = hash.digest('hex');
+    ```
+
+    **Scenario 4: Binary File Parsing**
+    When reading structured binary files (like PNG, ZIP, etc.) where you need to read specific bytes at specific positions.
 
 * "How do you manipulate buffer data?"
   - Answer: Use methods like write(), read(), slice(), copy(), and concat() to modify buffer contents. Access individual bytes using array notation.
@@ -41,280 +120,2992 @@ This document outlines key concepts and common interview questions related to No
 
 **Key Areas:**
 
-* **Input Validation:** Sanitize user input to prevent injection attacks (SQL injection, cross-site scripting (XSS)).
-* **Authentication and Authorization:** Implement secure authentication (e.g., using JWTs, OAuth) and authorization mechanisms.
-* **HTTPS:** Use HTTPS to encrypt communication between the client and server.
-* **Password Hashing:** Store passwords securely using strong hashing algorithms (e.g., bcrypt, scrypt).
-* **CORS (Cross-Origin Resource Sharing):** Configure CORS to control which origins can access your API.
-* **Security Headers:** Use security headers (e.g., `Strict-Transport-Security`, `X-Frame-Options`) to enhance security.
-* **Dependencies:** Keep your dependencies up to date to patch security vulnerabilities.
-* **Avoiding common vulnerabilities:** Understand and avoid common vulnerabilities such as CSRF, and others found in the OWASP top 10.
+* **Input Validation and Sanitization:**
+  - Validate all user input on both client and server sides
+  - Use libraries like `express-validator` or `joi` for schema validation
+  - Sanitize input to prevent XSS and injection attacks
+  - Implement input whitelisting instead of blacklisting
+  - Set proper content types and character encodings
+
+* **Authentication and Authorization:**
+  - Implement multi-factor authentication (MFA) for sensitive operations
+  - Use OAuth 2.0 or OpenID Connect for third-party authentication
+  - Implement proper session management with secure, HttpOnly, and SameSite cookies
+  - Use short-lived access tokens and secure refresh token rotation
+  - Implement account lockout after failed attempts
+
+* **HTTPS and Secure Communication:**
+  - Enforce HTTPS using HSTS (HTTP Strict Transport Security)
+  - Implement certificate pinning for mobile applications
+  - Use secure cipher suites and disable weak protocols (SSLv3, TLS 1.0, TLS 1.1)
+  - Implement secure WebSocket connections (WSS)
+
+* **Password Security:**
+  - Use bcrypt, Argon2, or PBKDF2 for password hashing
+  - Enforce strong password policies (length, complexity, expiration)
+  - Implement secure password reset flows
+  - Never log or store plain-text passwords
+  - Use password managers and encourage their use
+
+* **CORS (Cross-Origin Resource Sharing):**
+  - Configure CORS to allow only trusted origins
+  - Avoid using wildcard (*) in production
+  - Set appropriate HTTP methods and headers
+  - Consider using a proxy server for API requests
+
+* **Security Headers:**
+  - `Content-Security-Policy`: Prevent XSS attacks
+  - `X-Content-Type-Options: nosniff`: Prevent MIME type sniffing
+  - `X-Frame-Options: DENY`: Prevent clickjacking
+  - `X-XSS-Protection: 1; mode=block`: Enable XSS filtering
+  - `Referrer-Policy`: Control referrer information
+  - `Feature-Policy`: Control browser features and APIs
+
+* **Dependency Management:**
+  - Regularly update dependencies (`npm audit`, `npm outdated`)
+  - Use `npm ci` for reproducible builds
+  - Lock dependency versions (package-lock.json, yarn.lock)
+  - Use `npm audit` and tools like Snyk or Dependabot
+  - Review and minimize dependencies
+
+* **OWASP Top 10 Protection:**
+  - Broken Access Control
+  - Cryptographic Failures
+  - Injection (SQL, NoSQL, Command, LDAP)
+  - Insecure Design
+  - Security Misconfiguration
+  - Vulnerable and Outdated Components
+  - Identification and Authentication Failures
+  - Software and Data Integrity Failures
+  - Security Logging and Monitoring Failures
+  - Server-Side Request Forgery (SSRF)
 
 **Interview Questions:**
 
-* "How do you prevent SQL injection and XSS attacks in Node.js?"
-  - Answer: Use parameterized queries for SQL, and sanitize/escape user input. For XSS, use content security policies and HTML escape functions, avoid dangerouslySetInnerHTML on the frontend, and prefer well-maintained template engines or frameworks that escape output by default.
+* **"How do you prevent SQL injection and XSS attacks in Node.js?"**
+  - **SQL Injection Prevention**:
+    ```javascript
+    // BAD - Vulnerable to SQL injection
+    const query = `SELECT * FROM users WHERE username = '${username}'`;
+    
+    // GOOD - Parameterized queries
+    const query = 'SELECT * FROM users WHERE username = ?';
+    db.query(query, [username], (err, results) => {
+      // Handle results
+    });
+    ```
+  - **XSS Prevention**:
+    - Use template engines that auto-escape by default (EJS, Pug with `{ escape: true }`)
+    - Sanitize user input with libraries like `dompurify` or `xss`
+    - Implement Content Security Policy (CSP)
+    - Set `X-XSS-Protection: 1; mode=block` header
+    - Use `helmet` middleware for security headers
 
-* "What are JWTs and how are they used for authentication?"
-  - Answer: JSON Web Tokens are encoded strings containing user data and signatures, used to maintain stateless authentication between client and server.
+* **"What are JWTs and how are they used for authentication?"**
+  - **JWT Structure**:
+    - Header: Algorithm and token type
+    - Payload: Claims (user data, expiration, etc.)
+    - Signature: Verifies token integrity
+  - **Implementation**:
+    ```javascript
+    const jwt = require('jsonwebtoken');
+    
+    // Create token
+    const token = jwt.sign(
+      { userId: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+    
+    // Verify token
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) { /* handle error */ }
+      // Use decoded data
+    });
+    ```
+  - **Best Practices**:
+    - Store tokens in HTTP-only cookies
+    - Use short expiration times
+    - Implement refresh token rotation
+    - Include user context in the payload
+    - Use RS256 for asymmetric encryption in microservices
 
-* "How do you implement secure password storage in Node.js?"
-  - Answer: Hash passwords using bcrypt or Argon2 with unique salts. Never store plain passwords. Use environment variables for sensitive data.
+* **"How do you implement secure password storage in Node.js?"**
+  ```javascript
+  const bcrypt = require('bcrypt');
+  const saltRounds = 12;
+  
+  // Hashing password
+  async function hashPassword(password) {
+    return await bcrypt.hash(password, saltRounds);
+  }
+  
+  // Verifying password
+  async function verifyPassword(plainPassword, hashedPassword) {
+    return await bcrypt.compare(plainPassword, hashedPassword);
+  }
+  ```
+  - **Key Points**:
+    - Use work factor (cost) of 12 or higher for bcrypt
+    - Store only the hashed password (never plaintext)
+    - Use environment variables for secrets
+    - Consider using Argon2 for better security
 
-* "What is CORS and how do you configure it?"
-  - Answer: Cross-Origin Resource Sharing controls which domains can access your API. Configure using cors middleware with specific origin, methods, and headers.
+* **"What is CORS and how do you configure it?"**
+  ```javascript
+  const express = require('express');
+  const cors = require('cors');
+  
+  const app = express();
+  
+  // Basic CORS configuration
+  const corsOptions = {
+    origin: ['https://trusted-domain.com', 'https://api.trusted-domain.com'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    maxAge: 86400, // 24 hours
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+  };
+  
+  app.use(cors(corsOptions));
+  ```
+  - **Best Practices**:
+    - Be specific with allowed origins
+    - Limit HTTP methods
+    - Set appropriate headers
+    - Configure CORS before routes
 
-* "What are security headers and why are they important?"
-  - Answer: HTTP headers like HSTS, CSP protect against various attacks. They enforce HTTPS, prevent clickjacking, and control resource loading.
-* "How do you keep your Node.js application secure?"
-  - Answer: Follow OWASP best practices: validate and sanitize user input, use HTTPS everywhere, store secrets in environment variables or secret managers, and regularly patch Node and dependencies. Add security headers, rate limiting, and logging/alerts so you can detect and respond to suspicious behavior early.
-* "How do you handle user authentication and authorization?"
-  - Answer: Use well-tested libraries for JWT or session-based auth, hash passwords with bcrypt/Argon2, and store refresh tokens securely (often in httpOnly cookies). Apply authorization checks in middleware or route guards based on roles/permissions, and always enforce those checks on the server, not just in the UI.
-* "What are some common security vulnerabilities in Node.js applications, and how can they be mitigated?"
-  - Answer: Common issues include injection attacks (SQL/NoSQL/command), XSS, CSRF, insecure deserialization, and using vulnerable packages. Mitigate them with parameterized queries, output encoding/escaping, CSRF tokens and SameSite cookies, safe JSON parsing, dependency scanning (npm audit/Snyk), and least-privilege access to databases and services.
+* **"What are security headers and why are they important?"**
+  ```javascript
+  const helmet = require('helmet');
+  app.use(helmet());
+  
+  // Custom security headers
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'same-origin');
+    res.setHeader('Feature-Policy', "geolocation 'none'; microphone 'none'; camera 'none'");
+    next();
+  });
+  ```
+  - **Key Headers**:
+    - `Content-Security-Policy`: Prevents XSS and code injection
+    - `Strict-Transport-Security`: Enforces HTTPS
+    - `X-Content-Type-Options`: Prevents MIME sniffing
+    - `X-Frame-Options`: Prevents clickjacking
+    - `X-XSS-Protection`: Enables XSS filtering
 
-## 3. Use of Multi-Core or Single-Core Systems
+* **"How do you keep your Node.js application secure?"**
+  - **Development**:
+    - Use `npm audit` and `npm outdated` regularly
+    - Implement pre-commit hooks with `husky` and `lint-staged`
+    - Use `eslint-plugin-security`
+    - Set up CI/CD with security scanning
+  - **Production**:
+    - Use environment variables for configuration
+    - Implement rate limiting (`express-rate-limit`)
+    - Set up logging and monitoring
+    - Regular security audits and penetration testing
+    - Keep Node.js and dependencies updated
 
-**Single-Threaded Nature of Node.js:**
+* **"How do you handle user authentication and authorization?"**
+  ```javascript
+  // Authentication middleware
+  const authenticateJWT = (req, res, next) => {
+    const token = req.cookies.token;
+    
+    if (!token) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+    
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (err) {
+        return res.status(403).json({ message: 'Invalid token' });
+      }
+      req.user = user;
+      next();
+    });
+  };
+  
+  // Authorization middleware
+  const authorize = (roles = []) => {
+    return (req, res, next) => {
+      if (!roles.includes(req.user.role)) {
+        return res.status(403).json({ message: 'Forbidden' });
+      }
+      next();
+    };
+  };
+  
+  // Usage
+  app.get('/admin', authenticateJWT, authorize(['admin']), (req, res) => {
+    // Admin route
+  });
+  ```
 
-* Node.js runs on a single thread, which allows for high concurrency but can lead to performance bottlenecks for CPU-bound tasks.
-* The event loop handles asynchronous I/O operations efficiently, but CPU-intensive tasks block the event loop.
+* **"What are some common security vulnerabilities in Node.js applications, and how can they be mitigated?"**
+  | Vulnerability | Impact | Mitigation |
+  |--------------|--------|------------|
+  | **Injection** | Data theft, system compromise | Use parameterized queries, ORM with built-in protection |
+  | **Broken Authentication** | Account takeover | Implement MFA, secure session management |
+  | **Sensitive Data Exposure** | Data breach | Encrypt data at rest and in transit |
+  | **Broken Access Control** | Unauthorized access | Implement proper authorization checks |
+  | **Security Misconfiguration** | Various attacks | Harden server, disable unnecessary features |
+  | **XSS** | Session hijacking, defacement | Input validation, output encoding |
+  | **Insecure Deserialization** | Remote code execution | Validate input, use safe serialization |
+  | **Using Components with Known Vulnerabilities** | Exploitation of known issues | Regular updates, dependency scanning |
+  | **Insufficient Logging & Monitoring** | Delayed breach detection | Implement comprehensive logging and monitoring |
+  | **SSRF** | Internal network access | Validate and sanitize user input, use allowlists |
 
-**Multi-Core Utilization:**
+## 3. Multi-Core Processing in Node.js
 
-* **Child Processes:** Use the `child_process` module to spawn separate processes and distribute CPU-bound tasks across multiple cores.
-* **Clustering:** Use the `cluster` module to create multiple worker processes that share the same port, allowing you to take advantage of multi-core systems.
-* **Worker Threads:** Use the `worker_threads` module to run JavaScript code in parallel threads within the same Node.js process. This is good for CPU-intensive JavaScript operations.
+**Single-Threaded Event Loop Architecture:**
 
-**Interview Questions:**
+* **Event Loop**: Node.js uses a single-threaded event loop for handling asynchronous I/O operations, making it highly efficient for I/O-bound tasks.
+* **Non-Blocking I/O**: Utilizes libuv's thread pool (default size: 4) to handle potentially blocking operations like filesystem or DNS operations.
+* **CPU-Bound Limitation**: The single-threaded nature means CPU-intensive tasks can block the event loop, causing performance issues.
 
-* "Explain the single-threaded nature of Node.js and its implications."
-  - Answer: Node.js runs on single thread using event loop. Great for I/O operations, but CPU-intensive tasks can block execution.
+**Multi-Core Processing Strategies:**
 
-* "How can you utilize multi-core systems in Node.js?"
-  - Answer: Use cluster module to create worker processes, or worker_threads for CPU-intensive tasks. Child_process module spawns separate processes.
-
-* "What is the difference between child processes and worker threads?"
-  - Answer: Child processes have separate memory and run independently. Worker threads share memory and are lighter, better for CPU-intensive tasks.
-
-* "When would you use the `cluster` module?"
-  - Answer: Use cluster to create multiple processes sharing same port, improving performance and utilizing all CPU cores for better scalability.
-
-* "How do you handle CPU-bound tasks in Node.js?"
-  - Answer: Offload to worker threads, use child processes, or break into smaller chunks to prevent blocking the event loop.
-
-| Feature | **Cluster Module** | **Worker Threads** |
-| :--- | :--- | :--- |
-| **Model** | Multi-process | Multi-thread |
-| **Memory** | Separate memory space | Shared memory (`SharedArrayBuffer`) |
-| **Communication** | IPC (Inter-Process Communication) | MessageChannel / `postMessage` |
-| **Use Case** | Horizontal scaling (handling more requests) | CPU-intensive JavaScript tasks |
-| **Overhead** | High (full new instance of V8/Node) | Low (shares V8 instance) |
-| **Port Sharing**| Always (shares same server port) | No (typically orchestrated by main thread) |
-
-* "Explain the event loop, and how it relates to single threaded applications."
-  - Answer: The event loop is a mechanism that allows Node.js to perform non-blocking I/O operations by offloading operations to the system kernel whenever possible. Since modern kernels are multi-threaded, they can handle multiple operations executing in the background. When one of these operations completes, the kernel tells Node.js so that the appropriate callback may be added to the poll queue to eventually be executed.
-
-**Event Loop Phases (Detailed Breakdown):**
-1. **Timers:** Executes callbacks scheduled by `setTimeout()` and `setInterval()`.
-2. **Pending Callbacks:** Executes I/O callbacks deferred to the next loop iteration (e.g., some TCP errors).
-3. **Idle, Prepare:** Used internally by Node.js.
-4. **Poll:** Retrieves new I/O events; executes I/O related callbacks (nearly all with the exception of close callbacks, the ones scheduled by timers, and `setImmediate()`).
-5. **Check:** `setImmediate()` callbacks are invoked here.
-6. **Close Callbacks:** Executes close events (e.g., `socket.on('close', ...)`.
-
-*Note: `process.nextTick()` is NOT technically part of the event loop. It's processed after the current operation finishes, regardless of the current phase of the event loop.*
-
-## 4. Timing Functions
-
-**Key Functions:**
-
-* `setTimeout(callback, delay)`: Executes a callback function after a specified delay.
-* `setInterval(callback, interval)`: Repeatedly executes a callback function at a specified interval.
-* `clearTimeout(timeoutId)`: Cancels a timeout.
-* `clearInterval(intervalId)`: Cancels an interval.
-* `setImmediate(callback)`: Executes a callback function at the end of the current event loop cycle.
-* `process.nextTick(callback)`: Executes a callback function before the next event loop cycle.
-* `performance.now()`: provides high resolution timing.
-
-**Understanding the Event Loop:**
-
-* Timing functions are closely related to the Node.js event loop. Understand how `setTimeout`, `setInterval`, `setImmediate`, and `process.nextTick` are scheduled and executed in the event loop.
-
-**Interview Questions:**
-
-* "Explain the differences between `setTimeout`, `setInterval`, `setImmediate`, and `process.nextTick`."
-  - Answer: setTimeout delays execution, setInterval repeats execution, setImmediate runs after I/O, nextTick runs before next event loop iteration.
-
-* "How do you cancel a timeout or interval?"
-  - Answer: Use clearTimeout(timeoutId) for timeouts and clearInterval(intervalId) for intervals, storing and passing the returned IDs.
-
-* "Describe a scenario where you would use each of these timing functions."
-  - Answer: setTimeout for delays, setInterval for polling, setImmediate for I/O callbacks, nextTick for immediate async execution.
-
-* "How do timing functions interact with the Node.js event loop?"
-  - Answer: Timers (`setTimeout`/`setInterval`) are checked in the timers phase, `setImmediate` callbacks run in the check phase, and `process.nextTick` runs before the loop continues to the next phase. Understanding these phases explains why `nextTick` can starve I/O if overused, while `setImmediate` tends to be fairer.
-* "What is the difference between microtasks and macrotasks?"
-  - Answer: Microtasks (like resolved Promises and `process.nextTick`) run immediately after the current JavaScript stack before the event loop proceeds, while macrotasks (timers, I/O callbacks, `setImmediate`) are scheduled in specific event loop phases. This difference affects execution order and is crucial when reasoning about race conditions.
-* "When would you use `performance.now()`?"
-  - Answer: Use `performance.now()` when you need high‑resolution timing for profiling or benchmarking specific code paths; it gives sub‑millisecond timestamps relative to the process start and is preferred over `Date.now()` for measuring short durations.
-
-## 5. Streams
-
-**Understanding Streams:**
-
-* Streams are a fundamental concept in Node.js for handling sequential data. They allow you to process data in chunks, without loading the entire dataset into memory.
-* Types: 
-  - **Readable**: Source of data (e.g., `fs.createReadStream`).
-  - **Writable**: Destination for data (e.g., `fs.createWriteStream`).
-  - **Duplex**: Both Readable and Writable (e.g., a TCP socket).
-  - **Transform**: A type of Duplex stream where the output is computed from the input (e.g., `zlib.createGzip`).
-* **Piping**: `stream.pipe(destination)` connects a readable stream to a writable one.
-* **Pipeline**: `stream.pipeline` (or `stream/promises` variant) is preferred for production as it cleans up all involved streams if one fails and provides better error handling than `pipe`.
-
-**Backpressure in Streams:**
-Backpressure occurs when the data producer is faster than the consumer. If the consumer (Writable stream) buffer fills up, it returns `false` on a `.write()` call. The producer should then stop writing until the consumer emits the `'drain'` event.
-* `pipe()` handles backpressure and `'drain'` events automatically.
-
-**Code Example (Pipeline with Error Handling):**
+### 1. Child Processes (`child_process` module)
 ```javascript
-const { pipeline } = require('stream/promises');
+const { fork } = require('child_process');
+
+// Fork a new Node.js process
+const child = fork('worker.js');
+
+// Send message to child
+child.send({ task: 'process_data', data: largeDataSet });
+
+// Handle response from child
+child.on('message', (result) => {
+  console.log('Result from child:', result);
+});
+
+// worker.js
+process.on('message', async ({ task, data }) => {
+  if (task === 'process_data') {
+    const result = await cpuIntensiveTask(data);
+    process.send(result);
+  }
+});
+```
+
+### 2. Clustering (`cluster` module)
+```javascript
+const cluster = require('cluster');
+const os = require('os');
+const http = require('http');
+
+if (cluster.isMaster) {
+  const numCPUs = os.cpus().length;
+  console.log(`Master ${process.pid} is running`);
+  
+  // Fork workers
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
+  }
+  
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(`Worker ${worker.process.pid} died`);
+    cluster.fork(); // Restart worker
+  });
+} else {
+  // Workers can share any TCP connection
+  http.createServer((req, res) => {
+    res.writeHead(200);
+    res.end(`Hello from worker ${process.pid}\n`);
+  }).listen(8000);
+  
+  console.log(`Worker ${process.pid} started`);
+}
+```
+
+### 3. Worker Threads (`worker_threads` module)
+```javascript
+const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
+
+if (isMainThread) {
+  // Main thread
+  const worker = new Worker(__filename, {
+    workerData: { /* data to pass to worker */ }
+  });
+  
+  worker.on('message', (result) => {
+    console.log('Worker result:', result);
+  });
+  
+  worker.on('error', (err) => {
+    console.error('Worker error:', err);
+  });
+  
+  worker.on('exit', (code) => {
+    if (code !== 0) {
+      console.error(`Worker stopped with exit code ${code}`);
+    }
+  });
+} else {
+  // Worker thread
+  const heavyComputation = (data) => {
+    // CPU-intensive task
+    return data * 2;
+  };
+  
+  const result = heavyComputation(workerData);
+  parentPort.postMessage({ result });
+}
+```
+
+**Comparison of Multi-Processing Approaches**
+
+| Feature | **Child Process** | **Cluster** | **Worker Threads** |
+|---------|------------------|-------------|-------------------|
+| **Isolation** | Separate V8 instance, memory | Separate V8 instance, memory | Shared memory possible |
+| **Communication** | IPC (slower) | IPC (slower) | SharedArrayBuffer (faster) |
+| **Use Case** | Run separate programs | Scale HTTP servers | CPU-intensive JS tasks |
+| **Overhead** | High | High | Low |
+| **Port Sharing** | No | Yes | N/A |
+| **Best For** | Running non-Node.js code | Stateless HTTP servers | CPU-bound JavaScript |
+
+**Interview Questions & Answers:**
+
+* **"Explain the single-threaded nature of Node.js and its implications."**
+  - **Single-Threaded Model**: Node.js runs JavaScript in a single thread with an event loop, making it highly efficient for I/O-bound operations.
+  - **Implications**:
+    - ✅ Excellent for handling many concurrent connections with low overhead
+    - ❌ CPU-intensive tasks block the event loop
+    - 🔄 Uses libuv's thread pool for potentially blocking operations
+    - 📈 Scales well for I/O-bound workloads but needs special handling for CPU-bound tasks
+
+* **"How can you utilize multi-core systems in Node.js?"**
+  - **Cluster Module**:
+    ```javascript
+    const cluster = require('cluster');
+    if (cluster.isMaster) {
+      // Fork workers based on CPU cores
+      for (let i = 0; i < require('os').cpus().length; i++) {
+        cluster.fork();
+      }
+    } else {
+      // Worker code
+      require('./server');
+    }
+    ```
+  - **Worker Threads**:
+    ```javascript
+    const { Worker } = require('worker_threads');
+    const worker = new Worker(require.resolve('./worker.js'), {
+      workerData: { /* data */ }
+    });
+    ```
+  - **Child Processes**:
+    ```javascript
+    const { fork } = require('child_process');
+    const child = fork('cpu-intensive-task.js');
+    ```
+
+* **"What's the difference between cluster, child_process, and worker_threads?"**
+  - **Cluster**:
+    - Multiple Node.js worker processes
+    - Shares server ports
+    - Best for scaling HTTP servers
+    - No shared memory between workers
+  - **Child Process**:
+    - Spawns new system processes
+    - Can run any executable
+    - Heavyweight (separate V8 instance)
+    - Good for running non-Node.js programs
+  - **Worker Threads**:
+    - Lightweight threads within same process
+    - Can share memory (SharedArrayBuffer)
+    - Lower overhead than processes
+    - Best for CPU-bound JavaScript tasks
+
+* **"When would you use the cluster module?"**
+  - **Ideal Use Cases**:
+    - Scaling stateless HTTP/HTTPS servers
+    - Handling multiple concurrent connections
+    - When you need automatic process management
+    - Zero-downtime restarts with PM2 or similar
+  - **Implementation Example**:
+    ```javascript
+    // Graceful shutdown
+    cluster.on('exit', (worker, code, signal) => {
+      console.log(`Worker ${worker.process.pid} died`);
+      if (!worker.exitedAfterDisconnect) {
+        console.log('Starting a new worker');
+        cluster.fork();
+      }
+    });
+    ```
+
+* **"How do you handle CPU-bound tasks in Node.js?"**
+  - **Strategies**:
+    1. **Worker Threads** (Best for pure JavaScript CPU tasks):
+       ```javascript
+       const { Worker } = require('worker_threads');
+       function runService(workerData) {
+         return new Promise((resolve, reject) => {
+           const worker = new Worker('./worker.js', { workerData });
+           worker.on('message', resolve);
+           worker.on('error', reject);
+           worker.on('exit', (code) => {
+             if (code !== 0)
+               reject(new Error(`Worker stopped with exit code ${code}`));
+           });
+         });
+       }
+       ```
+    2. **Task Partitioning**: Break into smaller chunks
+       ```javascript
+       function processInChunks(data, chunkSize, processChunk) {
+         return new Promise((resolve) => {
+           let results = [];
+           let index = 0;
+           
+           function next() {
+             const chunk = data.slice(index, index + chunkSize);
+             if (chunk.length === 0) return resolve(results);
+             
+             // Process chunk in next tick to avoid blocking
+             process.nextTick(() => {
+               results = results.concat(processChunk(chunk));
+               index += chunkSize;
+               next();
+             });
+           }
+           
+           next();
+         });
+       }
+       ```
+    3. **Native Addons**: For extreme performance needs
+    4. **Microservices**: Offload to specialized services
+
+* **"How does the thread pool work in Node.js?"**
+  - **Default Size**: 4 threads (configurable via `UV_THREADPOOL_SIZE`)
+  - **Handles**:
+    - File system operations
+    - DNS lookups
+    - Some crypto operations
+    - Some ZLIB operations
+  - **Configuration**:
+    ```bash
+    # Increase thread pool size
+    UV_THREADPOOL_SIZE=8 node server.js
+    ```
+  - **Best Practices**:
+    - Don't set it too high (memory overhead)
+    - Consider using worker threads for CPU-bound tasks instead
+    - Monitor thread pool usage with `process._getActiveHandles()`
+
+* **"How would you implement zero-dowtime restarts in a Node.js application?"**
+  ```javascript
+  // In master process
+  process.on('SIGUSR2', () => {
+    const workers = Object.values(cluster.workers);
+    
+    const restartWorker = (workerIndex) => {
+      if (workerIndex >= workers.length) return;
+      
+      const worker = workers[workerIndex];
+      console.log(`Restarting worker ${worker.process.pid}`);
+      
+      const newWorker = cluster.fork();
+      
+      newWorker.on('listening', () => {
+        worker.send('shutdown');
+      });
+      
+      worker.on('disconnect', () => {
+        // Give the worker some time to close connections
+        setTimeout(() => {
+          if (worker.isDead()) return;
+          worker.kill('SIGKILL');
+        }, 5000);
+      });
+      
+      newWorker.on('online', () => {
+        restartWorker(workerIndex + 1);
+      });
+    };
+    
+    restartWorker(0);
+  });
+  ```
+
+## 4. Event Loop & Timing Functions
+
+### Understanding the Node.js Event Loop
+
+The event loop is what allows Node.js to perform non-blocking I/O operations despite being single-threaded. Here's a comprehensive breakdown:
+
+**Event Loop Phases (in order of execution):**
+
+1. **Timers Phase**
+   - Executes callbacks scheduled by `setTimeout()` and `setInterval()`
+   - Only processes timers that have reached their threshold
+   - Example:
+     ```javascript
+     setTimeout(() => console.log('timeout'), 0);
+     setImmediate(() => console.log('immediate'));
+     // Order might vary due to the event loop phase execution
+     ```
+
+2. **Pending I/O Callbacks**
+   - Executes I/O callbacks deferred from previous iterations
+   - Handles TCP errors, system errors, etc.
+   - Example of a deferred callback:
+     ```javascript
+     const fs = require('fs');
+     fs.readFile('/nonexistent', (err) => {
+       // This error callback runs in the pending phase
+       console.error('Error:', err);
+     });
+     ```
+
+3. **Idle, Prepare (Internal Use)**
+   - Used internally by Node.js for housekeeping
+   - Not typically used in application code
+
+4. **Poll Phase**
+   - Retrieves new I/O events
+   - Executes I/O-related callbacks (file system, network, etc.)
+   - If no timers are scheduled, it will wait for new I/O events
+   - Example:
+     ```javascript
+     const fs = require('fs');
+     
+     // This I/O operation's callback will be processed in the poll phase
+     fs.readFile('example.txt', (err, data) => {
+       console.log('File read complete');
+     });
+     ```
+
+5. **Check Phase**
+   - `setImmediate()` callbacks are executed here
+   - Runs immediately after the poll phase completes
+   - Example:
+     ```javascript
+     setImmediate(() => {
+       console.log('This runs in the check phase');
+     });
+     ```
+
+6. **Close Callbacks**
+   - Executes close event callbacks (e.g., `socket.on('close', ...)`)
+   - Example:
+     ```javascript
+     const server = require('http').createServer();
+     server.on('connection', (socket) => {
+       socket.on('close', () => {
+         console.log('Connection closed');
+       });
+     });
+     ```
+
+**Microtask Queue (Not Part of Event Loop Phases)**
+- Processed after the current operation completes and before the event loop continues
+- Includes:
+  - `process.nextTick()` callbacks (highest priority)
+  - Resolved Promise callbacks (`.then()`, `async/await`)
+- Example showing execution order:
+  ```javascript
+  console.log('Start');
+  
+  // Macrotask (Timer Phase)
+  setTimeout(() => console.log('setTimeout'), 0);
+  
+  // Microtask (Next Tick Queue)
+  process.nextTick(() => console.log('nextTick 1'));
+  
+  // Microtask (Promise Queue)
+  Promise.resolve().then(() => console.log('Promise 1'));
+  
+  // Microtask (Next Tick Queue)
+  process.nextTick(() => {
+    console.log('nextTick 2');
+    // Adding another microtask from within a microtask
+    Promise.resolve().then(() => console.log('Nested Promise'));
+  });
+  
+  console.log('End');
+  
+  // Output Order:
+  // Start
+  // End
+  // nextTick 1
+  // nextTick 2
+  // Promise 1
+  // Nested Promise
+  // setTimeout
+  ```
+
+### Timing Functions in Depth
+
+#### 1. `setTimeout` & `setInterval`
+```javascript
+// Basic usage
+const timeoutId = setTimeout(() => {
+  console.log('This runs after 1 second');
+}, 1000);
+
+// Clear the timeout
+clearTimeout(timeoutId);
+
+// setInterval example
+let counter = 0;
+const intervalId = setInterval(() => {
+  console.log(`Interval ${++counter}`);
+  if (counter >= 5) {
+    clearInterval(intervalId);
+  }
+}, 500);
+```
+
+#### 2. `setImmediate` vs `process.nextTick`
+```javascript
+console.log('Start');
+
+setImmediate(() => {
+  console.log('setImmediate - runs in the check phase');
+});
+
+process.nextTick(() => {
+  console.log('nextTick - runs before the event loop continues');
+});
+
+console.log('End');
+
+// Output Order:
+// Start
+// End
+// nextTick - runs before the event loop continues
+// setImmediate - runs in the check phase
+```
+
+#### 3. `performance.now()` for High-Resolution Timing
+```javascript
+const { performance } = require('perf_hooks');
+
+// Basic usage
+const start = performance.now();
+
+// Some operation
+let sum = 0;
+for (let i = 0; i < 1000000; i++) {
+  sum += i;
+}
+
+const end = performance.now();
+console.log(`Operation took ${(end - start).toFixed(3)}ms`);
+
+// Measuring async operations
+async function measureAsync() {
+  const start = performance.now();
+  
+  // Simulate async operation
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  const end = performance.now();
+  console.log(`Async operation took ${(end - start).toFixed(3)}ms`);
+}
+
+measureAsync();
+```
+
+### Common Interview Questions & Answers
+
+#### 1. "Explain the event loop in Node.js"
+- **Answer**: The event loop is Node.js's mechanism for handling asynchronous operations. It's a single-threaded loop that processes events from various queues. The event loop has several phases (timers, I/O callbacks, idle/prepare, poll, check, close callbacks) that it cycles through, executing callbacks from each phase's queue. This allows Node.js to handle many concurrent operations with a single thread by delegating I/O operations to the system kernel and processing callbacks when operations complete.
+
+#### 2. "What's the difference between `setImmediate` and `process.nextTick`?"
+- **Answer**:
+  - `process.nextTick()`:
+    - Runs before the event loop continues to the next phase
+    - Higher priority than `setImmediate`
+    - Can lead to I/O starvation if overused
+    - Part of the microtask queue
+  - `setImmediate()`:
+    - Runs in the check phase of the event loop
+    - Lower priority than `process.nextTick`
+    - More fair to I/O operations
+    - Better for breaking up long-running operations
+
+#### 3. "How would you implement a debounce function?"
+```javascript
+function debounce(func, wait) {
+  let timeout;
+  return function(...args) {
+    const context = this;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+}
+
+// Usage
+const debouncedSearch = debounce((query) => {
+  console.log(`Searching for: ${query}`);
+  // API call would go here
+}, 300);
+
+// Will only execute once after 300ms of no calls
+debouncedSearch('node');
+debouncedSearch('node.js');
+```
+
+#### 4. "Explain the difference between microtasks and macrotasks"
+- **Answer**:
+  - **Microtasks**:
+    - Processed after the current operation completes and before the event loop continues
+    - Includes: `process.nextTick()`, `Promise` callbacks, `queueMicrotask()`
+    - Higher priority than macrotasks
+  - **Macrotasks**:
+    - Processed in the event loop phases
+    - Includes: `setTimeout`, `setInterval`, `setImmediate`, I/O callbacks
+    - Lower priority than microtasks
+
+#### 5. "How would you implement a simple rate limiter?"
+```javascript
+class RateLimiter {
+  constructor(limit, interval) {
+    this.limit = limit;
+    this.interval = interval;
+    this.requests = [];
+  }
+
+  canProceed() {
+    const now = Date.now();
+    // Remove requests older than the interval
+    this.requests = this.requests.filter(time => now - time < this.interval);
+    
+    if (this.requests.length < this.limit) {
+      this.requests.push(now);
+      return true;
+    }
+    return false;
+  }
+}
+
+// Usage
+const apiLimiter = new RateLimiter(5, 60000); // 5 requests per minute
+
+// In your route handler
+function handleRequest(req, res) {
+  if (!apiLimiter.canProceed()) {
+    return res.status(429).send('Too Many Requests');
+  }
+  // Process the request
+  res.send('Request processed');
+}
+```
+
+#### 6. "What's the difference between `setTimeout(fn, 0)` and `setImmediate(fn)`?"
+- **Answer**:
+  - `setTimeout(fn, 0)`: 
+    - Schedules the callback to be executed in the next timers phase
+    - The actual delay may be longer than 0ms (minimum delay is 1ms in modern browsers/Node.js)
+  - `setImmediate(fn)`:
+    - Schedules the callback to be executed in the check phase
+    - More efficient than `setTimeout(fn, 0)` as it doesn't involve the timers phase
+    - In the main module, the order between them is non-deterministic, but in I/O callbacks, `setImmediate` always runs first
+
+#### 7. "How would you measure the performance of an async operation?"
+```javascript
+const { performance, PerformanceObserver } = require('perf_hooks');
+
+// Method 1: Using performance.mark()
+async function measureOperation() {
+  performance.mark('start');
+  
+  // Simulate async operation
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
+  performance.mark('end');
+  performance.measure('Async Operation', 'start', 'end');
+  
+  const measure = performance.getEntriesByName('Async Operation')[0];
+  console.log(`Operation took ${measure.duration.toFixed(2)}ms`);
+  
+  // Clean up
+  performance.clearMarks();
+  performance.clearMeasures();
+}
+
+// Method 2: Using PerformanceObserver
+const obs = new PerformanceObserver((items) => {
+  const entries = items.getEntries();
+  console.log(entries[0].duration);
+  performance.clearMarks();
+});
+obs.observe({ entryTypes: ['measure'] });
+
+// Usage
+performance.mark('start');
+setTimeout(() => {
+  performance.mark('end');
+  performance.measure('Timeout', 'start', 'end');
+}, 100);
+```
+
+## 5. Streams in Node.js
+
+### Understanding Streams
+
+Streams are a powerful abstraction in Node.js for handling data flow in a memory-efficient way. They process data in chunks, making them ideal for working with large datasets or real-time data without consuming excessive memory.
+
+### Core Stream Types
+
+#### 1. Readable Streams
+Source of data that can be read from (e.g., reading from a file, HTTP request).
+
+```javascript
+const fs = require('fs');
+
+// Creating a readable stream
+const readableStream = fs.createReadStream('largefile.txt', {
+  encoding: 'utf8',
+  highWaterMark: 64 * 1024 // 64KB chunks
+});
+
+// Reading data
+readableStream.on('data', (chunk) => {
+  console.log(`Received ${chunk.length} bytes of data`);
+});
+
+// End of stream
+readableStream.on('end', () => {
+  console.log('No more data');
+});
+
+// Error handling
+readableStream.on('error', (error) => {
+  console.error('Error reading file:', error);
+});
+```
+
+#### 2. Writable Streams
+Destination to which data can be written (e.g., writing to a file, HTTP response).
+
+```javascript
+const fs = require('fs');
+
+const writableStream = fs.createWriteStream('output.txt');
+
+// Writing data
+writableStream.write('First line\n');
+writableStream.write('Second line\n');
+writableStream.end('Final line\n'); // End the stream
+
+// Handle finish event
+writableStream.on('finish', () => {
+  console.log('All writes are now complete');
+});
+
+// Handle errors
+writableStream.on('error', (error) => {
+  console.error('Error writing to file:', error);
+});
+```
+
+#### 3. Duplex Streams
+Streams that are both Readable and Writable (e.g., TCP sockets).
+
+```javascript
+const { Duplex } = require('stream');
+
+const myDuplex = new Duplex({
+  write(chunk, encoding, callback) {
+    console.log('Received:', chunk.toString());
+    callback();
+  },
+  
+  read(size) {
+    // Push data to be read
+    if (this.currentCharCode > 90) { // Stop at 'Z'
+      this.push(null); // Signal end of stream
+      return;
+    }
+    this.push(String.fromCharCode(this.currentCharCode++));
+  }
+});
+
+// Initialize counter
+myDuplex.currentCharCode = 65; // 'A'
+
+// Read from the stream
+myDuplex.on('data', chunk => {
+  console.log('Read:', chunk.toString());
+});
+
+// Write to the stream
+myDuplex.write('Hello');
+myDuplex.end();
+```
+
+#### 4. Transform Streams
+Special type of Duplex stream that transforms data as it's written and read (e.g., compression, encryption).
+
+```javascript
+const { Transform } = require('stream');
+
+// Custom transform stream that converts to uppercase
+const upperCaseTransform = new Transform({
+  transform(chunk, encoding, callback) {
+    this.push(chunk.toString().toUpperCase());
+    callback();
+  }
+});
+
+// Using the transform stream
+process.stdin
+  .pipe(upperCaseTransform)
+  .pipe(process.stdout);
+
+console.log('Type something (Ctrl+C to exit):');
+```
+
+### Stream Piping
+Piping connects multiple streams together, automatically handling backpressure.
+
+```javascript
 const fs = require('fs');
 const zlib = require('zlib');
 
-async function compressFile(input, output) {
+// Basic pipe
+fs.createReadStream('input.txt')
+  .pipe(zlib.createGzip())
+  .pipe(fs.createWriteStream('output.txt.gz'))
+  .on('finish', () => console.log('File compressed'));
+
+// Using pipeline (recommended for better error handling)
+const { pipeline } = require('stream/promises');
+
+async function processFile() {
   try {
     await pipeline(
-      fs.createReadStream(input),
+      fs.createReadStream('input.txt'),
+      // Add transform streams here
       zlib.createGzip(),
-      fs.createWriteStream(output)
+      fs.createWriteStream('output.txt.gz')
     );
-    console.log('Compression successful');
+    console.log('Pipeline succeeded');
   } catch (err) {
-    console.error('Pipeline failed', err);
+    console.error('Pipeline failed:', err);
+  }
+}
+
+processFile();
+```
+
+### Backpressure Handling
+
+Backpressure occurs when the data producer is faster than the consumer. Here's how to handle it:
+
+```javascript
+const fs = require('fs');
+
+// Producer (fast)
+const readable = fs.createReadStream('largefile.txt');
+
+// Consumer (slow)
+const writable = fs.createWriteStream('output.txt');
+
+// Handle backpressure manually
+readable.on('data', (chunk) => {
+  const canContinue = writable.write(chunk);
+  
+  if (!canContinue) {
+    // Pause the readable stream when the writable stream's buffer is full
+    console.log('Backpressure: Pausing readable stream');
+    readable.pause();
+    
+    // Resume when the writable stream is ready again
+    writable.once('drain', () => {
+      console.log('Backpressure: Resuming readable stream');
+      readable.resume();
+    });
+  }
+});
+
+// Handle stream completion
+readable.on('end', () => {
+  writable.end('\n--- End of file ---\n');
+});
+
+writable.on('finish', () => {
+  console.log('Write completed');
+});
+```
+
+### Object Mode
+Streams can work with JavaScript objects instead of just strings and buffers.
+
+```javascript
+const { Readable } = require('stream');
+
+// Create a readable stream in object mode
+const objectStream = new Readable({
+  objectMode: true,
+  read() {}
+});
+
+// Push objects to the stream
+objectStream.push({ name: 'Alice', age: 30 });
+objectStream.push({ name: 'Bob', age: 25 });
+objectStream.push(null); // Signal end of stream
+
+// Consume the stream
+objectStream.on('data', (obj) => {
+  console.log(`Name: ${obj.name}, Age: ${obj.age}`);
+});
+```
+
+### Common Interview Questions & Answers
+
+#### 1. "What are streams and why are they important in Node.js?"
+- **Answer**: Streams are collections of data that might not be available all at once and don't have to fit in memory. They're important because:
+  - **Memory Efficiency**: Process data in chunks instead of loading everything into memory
+  - **Time Efficiency**: Start processing data as soon as it's available
+  - **Composability**: Can be piped together to create complex data processing pipelines
+  - **Built-in Support**: Many Node.js core modules implement the stream interface
+
+#### 2. "Explain the different types of streams in Node.js"
+- **Answer**:
+  1. **Readable**: Source of data that can be read from (e.g., `fs.createReadStream`)
+  2. **Writable**: Destination to which data can be written (e.g., `fs.createWriteStream`)
+  3. **Duplex**: Both readable and writable (e.g., TCP sockets)
+  4. **Transform**: A type of duplex stream that can modify data as it's being read/written (e.g., `zlib.createGzip`)
+
+#### 3. "What is backpressure in Node.js streams and how do you handle it?"
+- **Answer**: Backpressure occurs when the data producer is faster than the consumer. Handling methods:
+  - **Using `pipe()`**: Automatically handles backpressure
+  - **Manual handling**: Check `writable.write()` return value and pause/resume streams
+  - **Using `pipeline`**: Handles backpressure and cleans up resources on error
+  - **High Water Mark**: Configure buffer size using `highWaterMark` option
+
+#### 4. "How would you process a very large CSV file using streams?"
+```javascript
+const fs = require('fs');
+const { Transform } = require('stream');
+const csv = require('csv-parser');
+
+// Transform stream to process each row
+const processRow = new Transform({
+  objectMode: true,
+  transform(row, encoding, callback) {
+    // Process each row (e.g., transform data, filter, etc.)
+    const processed = {
+      ...row,
+      processedAt: new Date().toISOString()
+    };
+    this.push(JSON.stringify(processed) + '\n');
+    callback();
+  }
+});
+
+// Process the file
+fs.createReadStream('large-file.csv')
+  .pipe(csv())
+  .pipe(processRow)
+  .pipe(fs.createWriteStream('output.ndjson'))
+  .on('finish', () => console.log('Processing complete'));
+```
+
+#### 5. "What's the difference between `pipe()` and `pipeline()`?"
+- **Answer**:
+  - **`pipe()`**:
+    - Chains streams together
+    - Doesn't automatically handle errors in the pipeline
+    - Returns the destination stream
+    - Doesn't automatically close all streams on error
+  - **`pipeline()`**:
+    - Takes any number of streams as arguments
+    - Properly handles errors and cleans up resources
+    - Returns a promise that resolves when the pipeline is complete
+    - Automatically destroys all streams if one fails
+
+#### 6. "How would you implement a custom transform stream?"
+```javascript
+const { Transform } = require('stream');
+
+class JSONParser extends Transform {
+  constructor(options = {}) {
+    super({ ...options, objectMode: true });
+    this.buffer = '';
+  }
+  
+  _transform(chunk, encoding, callback) {
+    this.buffer += chunk.toString();
+    
+    // Try to parse complete JSON objects
+    let boundary;
+    while ((boundary = this.buffer.indexOf('}')) !== -1) {
+      try {
+        const jsonStr = this.buffer.substring(0, boundary + 1);
+        const data = JSON.parse(jsonStr);
+        this.push(data);
+        this.buffer = this.buffer.substring(boundary + 1).trim();
+      } catch (err) {
+        // If parsing fails, wait for more data
+        break;
+      }
+    }
+    
+    callback();
+  }
+  
+  _flush(callback) {
+    // Process any remaining data
+    if (this.buffer) {
+      try {
+        const data = JSON.parse(this.buffer);
+        this.push(data);
+      } catch (err) {
+        this.emit('error', new Error('Invalid JSON at end of stream'));
+      }
+    }
+    callback();
+  }
+}
+
+// Usage
+const parser = new JSONParser();
+parser.on('data', (data) => {
+  console.log('Parsed:', data);
+});
+
+parser.write('{"name":"Alice"}\n{"name":"Bob"}');
+parser.end('{"name":"Charlie"}');
+```
+
+#### 7. "How would you handle errors in a stream pipeline?"
+```javascript
+const fs = require('fs');
+const { pipeline } = require('stream/promises');
+const zlib = require('zlib');
+
+async function processWithErrorHandling() {
+  try {
+    await pipeline(
+      fs.createReadStream('input.txt'),
+      // Add error handler to the transform stream
+      (() => {
+        const transform = new Transform({
+          transform(chunk, encoding, callback) {
+            try {
+              // Some processing that might throw
+              if (chunk.includes('error')) {
+                throw new Error('Invalid data encountered');
+              }
+              this.push(chunk);
+              callback();
+            } catch (err) {
+              callback(err); // Forward the error
+            }
+          }
+        });
+        
+        // Add error handler to the transform stream
+        transform.on('error', (err) => {
+          console.error('Transform error:', err.message);
+        });
+        
+        return transform;
+      })(),
+      zlib.createGzip(),
+      fs.createWriteStream('output.txt.gz')
+    );
+    
+    console.log('Pipeline completed successfully');
+  } catch (err) {
+    console.error('Pipeline failed:', err.message);
+  }
+}
+
+processWithErrorHandling();
+```
+
+### Performance Considerations
+
+1. **Buffer Sizing**: Adjust `highWaterMark` based on your use case
+   ```javascript
+   const stream = fs.createReadStream('file.txt', {
+     highWaterMark: 1024 * 1024 // 1MB chunks
+   });
+   ```
+
+2. **Concurrency Control**: Use libraries like `p-limit` or `p-queue` for parallel processing
+
+3. **Memory Management**: Be cautious with object mode streams as they can consume more memory
+
+4. **Error Handling**: Always handle errors on all streams in the pipeline
+
+5. **Resource Cleanup**: Use `stream.destroy()` or `pipeline()` to ensure proper cleanup
+
+### Real-world Use Cases
+
+1. **File Processing**: Process large files line by line
+2. **Data Transformation**: Convert between formats (CSV to JSON, etc.)
+3. **Log Processing**: Process log files in real-time
+4. **HTTP Requests/Responses**: Handle large uploads/downloads
+5. **Real-time Data**: Process real-time data from WebSockets or other sources
+
+## 6. Event Emitter in Node.js
+
+### Understanding Event Emitter
+
+The `EventEmitter` class is a core Node.js module that facilitates communication between objects in Node.js. It's the foundation of Node's asynchronous event-driven architecture and is used by many built-in modules like `http`, `fs`, and `net`.
+
+### Basic Usage
+
+```javascript
+const EventEmitter = require('events');
+
+// Create a new event emitter instance
+const myEmitter = new EventEmitter();
+
+// Listen for an event
+myEmitter.on('greet', (name) => {
+  console.log(`Hello, ${name}!`);
+});
+
+// Emit an event
+myEmitter.emit('greet', 'Alice'); // Output: Hello, Alice!
+```
+
+### Key Features
+
+#### 1. Multiple Listeners
+```javascript
+const emitter = new EventEmitter();
+
+// First listener
+emitter.on('data', (data) => {
+  console.log('Listener 1:', data);
+});
+
+// Second listener (gets called after the first)
+emitter.on('data', (data) => {
+  console.log('Listener 2:', data.toUpperCase());
+});
+
+emitter.emit('data', 'test');
+// Output:
+// Listener 1: test
+// Listener 2: TEST
+```
+
+#### 2. Once-Only Listeners
+```javascript
+emitter.once('connection', () => {
+  console.log('Connection established (this will only run once)');
+});
+
+emitter.emit('connection'); // This triggers the listener
+emitter.emit('connection'); // This does nothing
+```
+
+#### 3. Error Handling
+```javascript
+emitter.on('error', (error) => {
+  console.error('An error occurred:', error.message);
+});
+
+// This will trigger the 'error' event
+emitter.emit('error', new Error('Something went wrong'));
+```
+
+### Advanced Patterns
+
+#### 1. Extending EventEmitter
+```javascript
+class User extends EventEmitter {
+  constructor(name) {
+    super();
+    this.name = name;
+  }
+  
+  save() {
+    // Simulate async operation
+    setImmediate(() => {
+      this.emit('saved', { id: Date.now(), name: this.name });
+    });
+    return this;
+  }
+}
+
+const user = new User('Alice');
+user.on('saved', (data) => {
+  console.log('User saved:', data);
+});
+
+user.save();
+```
+
+#### 2. Request-Response Pattern
+```javascript
+class Responder extends EventEmitter {
+  constructor() {
+    super();
+    this.on('request', (data, callback) => {
+      console.log('Request received:', data);
+      // Process the request
+      const response = { status: 'success', data: 'Processed' };
+      callback(response);
+    });
+  }
+}
+
+const responder = new Responder();
+responder.emit('request', { action: 'getUser' }, (response) => {
+  console.log('Response:', response);
+});
+```
+
+### Performance Considerations
+
+1. **Memory Leaks**
+   - Always remove event listeners when they're no longer needed
+   - Use `emitter.off()` or `emitter.removeListener()`
+   - The `events.defaultMaxListeners` property sets the maximum number of listeners (default: 10)
+
+2. **Error Handling**
+   - Always handle 'error' events
+   - Use domains or async/await with event emitters for better error handling
+
+### Common Interview Questions & Answers
+
+#### 1. "What is the Observer pattern and how does EventEmitter implement it?"
+- **Answer**: The Observer pattern defines a one-to-many dependency between objects. When one object changes state, all its dependents are notified. EventEmitter implements this pattern through its `on()` (subscribe) and `emit()` (notify) methods, allowing multiple listeners to react to the same event.
+
+#### 2. "How would you implement a simple EventEmitter class?"
+```javascript
+class SimpleEventEmitter {
+  constructor() {
+    this.events = {};
+  }
+  
+  on(event, listener) {
+    if (!this.events[event]) {
+      this.events[event] = [];
+    }
+    this.events[event].push(listener);
+    return this;
+  }
+  
+  emit(event, ...args) {
+    if (!this.events[event]) return false;
+    
+    for (const listener of this.events[event]) {
+      try {
+        listener.apply(this, args);
+      } catch (err) {
+        console.error(`Error in ${event} handler:`, err);
+      }
+    }
+    
+    return true;
+  }
+  
+  off(event, listenerToRemove) {
+    if (!this.events[event]) return this;
+    
+    this.events[event] = this.events[event]
+      .filter(listener => listener !== listenerToRemove);
+    
+    return this;
   }
 }
 ```
 
-**Use Cases:**
+#### 3. "What's the difference between `process.nextTick()` and `setImmediate()` with respect to event emitters?"
+- **Answer**: 
+  - `process.nextTick()` schedules the callback to run in the same phase of the event loop, before any I/O events or timers fire. This can lead to I/O starvation if overused.
+  - `setImmediate()` schedules the callback to run in the check phase of the event loop, after I/O events. It's more efficient for event emission as it prevents blocking I/O operations.
 
-* File I/O, network communication, handling large datasets.
+#### 4. "How would you handle memory leaks with EventEmitters?"
+```javascript
+// 1. Always remove listeners when done
+const handler = () => console.log('Event fired');
+emitter.on('event', handler);
+// Later...
+emitter.off('event', handler);
 
-**Interview Questions:**
+// 2. Set max listeners
+emitter.setMaxListeners(20); // Increase if needed
 
-* "What are streams in Node.js, and why are they important?"
-  - Answer: Streams handle data in chunks, enabling efficient memory usage. Perfect for large files, network communication, and real-time data.
+// 3. Use EventEmitter.once() for one-time events
+emitter.once('connection', handleConnection);
 
-* "Explain the different types of streams."
-  - Answer: Readable streams provide data, Writable consume data, Duplex do both, Transform modifies data while streaming.
+// 4. Use tools to detect leaks
+if (emitter.listenerCount('event') > 10) {
+  console.warn('Possible memory leak detected');
+}
+```
 
-* "How does piping work?"
-  - Answer: Pipe connects readable to writable stream, automatically handling data flow and backpressure. Use pipe() method.
+#### 5. "How would you implement a simple pub/sub system using EventEmitter?"
+```javascript
+class PubSub {
+  constructor() {
+    this.topics = {};
+    this.subId = 0;
+  }
+  
+  subscribe(topic, callback) {
+    if (!this.topics[topic]) {
+      this.topics[topic] = {};
+    }
+    
+    const id = ++this.subId;
+    this.topics[topic][id] = callback;
+    
+    return () => {
+      delete this.topics[topic][id];
+      if (Object.keys(this.topics[topic]).length === 0) {
+        delete this.topics[topic];
+      }
+    };
+  }
+  
+  publish(topic, data) {
+    if (!this.topics[topic]) return;
+    
+    Object.values(this.topics[topic]).forEach(callback => {
+      try {
+        callback(data);
+      } catch (err) {
+        console.error(`Error in ${topic} subscriber:`, err);
+      }
+    });
+  }
+}
 
-* "How would you handle a large file using streams?"
-  - Answer: Create readable stream from file, pipe through transform if needed, then to writable stream. Handles memory efficiently.
+// Usage
+const pubsub = new PubSub();
+const unsubscribe = pubsub.subscribe('news', (data) => {
+  console.log('News update:', data);
+});
 
-* "When would you use a transform stream?"
-  - Answer: Use a transform stream when you need to modify or inspect data as it flows, such as compressing with gzip, encrypting/decrypting, filtering log lines, or parsing CSV/JSON records without loading the entire file into memory.
+pubsub.publish('news', 'Breaking: Node.js 20 released!');
+unsubscribe(); // Clean up
+```
 
-## 6. Event Emitter
+### Real-world Use Cases
 
-**Understanding the Event Emitter:**
-
-* The `EventEmitter` class is a core component of Node.js that enables objects to emit and listen for events.
-* It's used extensively in the Node.js core and in many third-party modules.
-
-**Use Cases:**
-
-* Handling asynchronous events, building custom event-driven systems.
-
-**Interview Questions:**
-
-* "What is the `EventEmitter` in Node.js?"
-  - Answer: Core class enabling event-driven architecture. Objects emit named events that cause listeners to execute callbacks.
-
-* "How do you emit and listen for events?"
-  - Answer: Use emitter.on() to listen for events, emitter.emit() to trigger events. Can pass data as arguments.
-
-* "Describe a scenario where you would use the `EventEmitter`."
-  - Answer: Custom event handling, like chat applications, logging systems, or any pub/sub pattern implementation.
-
-* "How do you handle errors in event emitters?"
-  - Answer: Always listen for the special `error` event and emit proper Error objects so problems can be logged or recovered from; an unhandled `error` event will crash the process. You can centralize this by having a top-level error listener or by wrapping emitters so that errors are converted into rejected promises or passed into your application’s error-handling middleware.
+1. **Chat Applications**: Real-time message broadcasting
+2. **Logging Systems**: Centralized logging with multiple outputs
+3. **Plugin Architectures**: Allowing plugins to hook into application events
+4. **State Management**: Notifying components of state changes
+5. **API Rate Limiting**: Tracking and limiting API requests
 
 ## 7. File System (fs) Module
 
-**Understanding the fs Module:**
+### Understanding the fs Module
 
-* The `fs` module provides APIs for interacting with the file system.
-* Synchronous vs. asynchronous methods.
+The `fs` module provides a comprehensive set of methods for interacting with the file system. It supports both synchronous and asynchronous operations, with the asynchronous methods being preferred for non-blocking I/O.
 
-**Key Operations:**
+### Core Operations
 
-* Reading and writing files, creating and deleting directories, checking file existence.
+#### 1. Reading Files
 
-**Interview Questions:**
+**Asynchronous with Callbacks:**
+```javascript
+const fs = require('fs');
 
-* "How do you read and write files in Node.js?"
-  - Answer: Use fs.readFile/writeFile for async operations, fs.readFileSync/writeFileSync for sync. Use streams for large files.
+fs.readFile('example.txt', 'utf8', (err, data) => {
+  if (err) {
+    console.error('Error reading file:', err);
+    return;
+  }
+  console.log('File content:', data);
+});
+```
 
-* "What are the differences between synchronous and asynchronous file system operations?"
-  - Answer: Sync operations block execution until complete. Async use callbacks/promises, allowing other code to run meanwhile.
+**With Promises (fs.promises):**
+```javascript
+const fs = require('fs').promises;
 
-* "How do you handle file system errors?"
-  - Answer: Use try-catch for sync operations, error-first callbacks or catch blocks with promises for async operations.
+async function readFile() {
+  try {
+    const data = await fs.readFile('example.txt', 'utf8');
+    console.log('File content:', data);
+  } catch (err) {
+    console.error('Error reading file:', err);
+  }
+}
+```
 
-* "How do you efficiently read large files?"
-  - Answer: Use fs.createReadStream() to read files in chunks, pipe to writable streams, set highWaterMark for buffer size. Avoid fs.readFile() for large files as it loads entire file into memory.
+**Synchronous (Blocking):**
+```javascript
+const fs = require('fs');
+
+try {
+  const data = fs.readFileSync('example.txt', 'utf8');
+  console.log('File content:', data);
+} catch (err) {
+  console.error('Error reading file:', err);
+}
+```
+
+#### 2. Writing Files
+
+**Asynchronous:**
+```javascript
+const fs = require('fs').promises;
+
+async function writeFile() {
+  try {
+    await fs.writeFile('output.txt', 'Hello, World!', 'utf8');
+    console.log('File written successfully');
+  } catch (err) {
+    console.error('Error writing file:', err);
+  }
+}
+```
+
+**Appending to Files:**
+```javascript
+const fs = require('fs').promises;
+
+async function appendToFile() {
+  try {
+    await fs.appendFile('log.txt', `${new Date().toISOString()} - Log entry\n`);
+  } catch (err) {
+    console.error('Error appending to file:', err);
+  }
+}
+```
+
+#### 3. Working with Directories
+
+**Creating Directories:**
+```javascript
+const fs = require('fs').promises;
+
+// Create directory (recursive: true creates parent directories if they don't exist)
+async function createDirectory() {
+  try {
+    await fs.mkdir('new-directory', { recursive: true });
+    console.log('Directory created');
+  } catch (err) {
+    console.error('Error creating directory:', err);
+  }
+}
+```
+
+**Reading Directories:**
+```javascript
+const fs = require('fs').promises;
+
+async function listFiles() {
+  try {
+    const files = await fs.readdir('.');
+    console.log('Files in directory:', files);
+  } catch (err) {
+    console.error('Error reading directory:', err);
+  }
+}
+```
+
+### File Metadata and Stats
+
+```javascript
+const fs = require('fs').promises;
+
+async function getFileStats() {
+  try {
+    const stats = await fs.stat('example.txt');
+    console.log('Is file?', stats.isFile());
+    console.log('Is directory?', stats.isDirectory());
+    console.log('Size in bytes:', stats.size);
+    console.log('Created:', stats.birthtime);
+    console.log('Last modified:', stats.mtime);
+  } catch (err) {
+    console.error('Error getting file stats:', err);
+  }
+}
+```
+
+### File System Watchers
+
+**Using `fs.watch` (more efficient):**
+```javascript
+const fs = require('fs');
+
+// Watch for changes in a file or directory
+const watcher = fs.watch('example.txt', (eventType, filename) => {
+  console.log(`Event type: ${eventType}`);
+  if (filename) {
+    console.log(`File affected: ${filename}`);
+  }
+});
+
+// Stop watching after 30 seconds
+setTimeout(() => {
+  watcher.close();
+  console.log('Stopped watching file');
+}, 30000);
+```
+
+### Common Interview Questions & Answers
+
+#### 1. "How would you read a large file without blocking the event loop?"
+- **Answer**: Use `fs.createReadStream()` to read the file in chunks, which is memory-efficient and non-blocking. This is particularly important for large files that shouldn't be loaded entirely into memory.
+
+```javascript
+const fs = require('fs');
+const readStream = fs.createReadStream('largefile.txt', {
+  encoding: 'utf8',
+  highWaterMark: 1024 * 1024 // 1MB chunks
+});
+
+readStream.on('data', (chunk) => {
+  // Process each chunk
+  console.log(`Received ${chunk.length} bytes of data`);
+});
+
+readStream.on('end', () => {
+  console.log('Finished reading file');
+});
+
+readStream.on('error', (err) => {
+  console.error('Error reading file:', err);
+});
+```
+
+#### 2. "What's the difference between `fs.readFile` and `fs.createReadStream`?"
+- **`fs.readFile`**:
+  - Reads the entire file into memory
+  - Simpler API but less efficient for large files
+  - Better for small files or when you need the entire content at once
   
-* "What is the difference between fs.promises and callback-based fs methods?"
-  - Answer: fs.promises provides promise-based API using async/await, while callback-based methods use error-first callbacks. fs.promises is cleaner and more modern.
+- **`fs.createReadStream`**:
+  - Reads the file in chunks (streams)
+  - More memory efficient for large files
+  - Better performance for processing large files
+  - Can be piped to other streams
+
+#### 3. "How would you implement a file-based logging system?"
+
+```javascript
+const fs = require('fs').promises;
+const { createWriteStream, promises: fsPromises } = require('fs');
+const path = require('path');
+
+class FileLogger {
+  constructor(logDir = 'logs') {
+    this.logDir = logDir;
+    this.initialize();
+  }
   
-* "How do you watch for file changes in Node.js?"
-  - Answer: Use fs.watch() or fs.watchFile(). fs.watch() uses OS native events and is more efficient. fs.watchFile() polls files and is less efficient but more compatible.
+  async initialize() {
+    try {
+      await fsPromises.mkdir(this.logDir, { recursive: true });
+      this.logFile = path.join(this.logDir, `${new Date().toISOString().split('T')[0]}.log`);
+      this.stream = createWriteStream(this.logFile, { flags: 'a' });
+    } catch (err) {
+      console.error('Failed to initialize logger:', err);
+    }
+  }
   
-* "How do you copy or move files efficiently?"
-  - Answer: Use streams for large files (createReadStream + createWriteStream), or fs.copyFileSync/copyFile for small files. For moving, use fs.rename() which is atomic.
-
-## 8. Networking (http, https, net) Modules
-
-**Understanding Networking:**
-
-* Node.js is well-suited for building network applications.
-* The `http`, `https`, and `net` modules provide APIs for creating HTTP servers, making HTTP requests, and working with TCP sockets.
-
-**Key Concepts:**
-
-* HTTP requests and responses, TCP sockets, server-side vs. client-side networking.
-
-**Interview Questions:**
-
-* "How do you create an HTTP server in Node.js?"
-  - Answer: Use http.createServer(), pass callback handling requests/responses. Listen on port. Use Express for more features.
-
-* "How do you make HTTP requests using the `http` or `https` module?"
-  - Answer: Use http.get() for GET requests, http.request() for other methods. Handle response in callback or promise.
-
-* "What are TCP sockets, and how are they used in Node.js?"
-  - Answer: Low-level networking interface for custom protocols. Create with net.createServer() and net.connect() for client-server communication.
-
-* "How do you handle different HTTP methods?"
-  - Answer: Check req.method property, use switch statement or if-else. In Express, use app.get(), app.post(), app.put(), app.delete() methods. Can also use app.all() for all methods.
+  log(level, message) {
+    const logEntry = `[${new Date().toISOString()}] [${level.toUpperCase()}] ${message}\n`;
+    
+    // Write to file
+    if (this.stream) {
+      this.stream.write(logEntry);
+    }
+    
+    // Also log to console
+    console[level === 'error' ? 'error' : 'log'](logEntry.trim());
+  }
   
-* "How do you parse request bodies in Node.js?"
-  - Answer: For JSON: use body-parser middleware or express.json(). For form data: body-parser.urlencoded(). For raw data: req.on('data') events. Always validate and sanitize input.
+  error(message) {
+    this.log('error', message);
+  }
   
-* "What is HTTP keep-alive and how does Node.js handle it?"
-  - Answer: Keep-alive reuses TCP connections for multiple requests. Node.js http module supports it by default. Use agent: {keepAlive: true} in http.request() for client connections.
+  info(message) {
+    this.log('info', message);
+  }
   
-* "How do you handle file uploads in Node.js?"
-  - Answer: Use multiparty, formidable, or multer middleware. Stream uploads to disk or cloud storage. Validate file types and sizes. Handle progress events for large files.
+  async rotateLogs() {
+    if (this.stream) {
+      await new Promise(resolve => this.stream.end(resolve));
+      await this.initialize();
+    }
+  }
   
-* "What are HTTP status codes and when to use them?"
-  - Answer: 200 (OK), 201 (Created), 400 (Bad Request), 401 (Unauthorized), 403 (Forbidden), 404 (Not Found), 500 (Server Error). Use appropriate codes to indicate request/response status.
+  async close() {
+    if (this.stream) {
+      await new Promise(resolve => this.stream.end(resolve));
+    }
+  }
+}
+
+// Usage
+const logger = new FileLogger();
+logger.info('Application started');
+logger.error('An error occurred');
+```
+
+#### 4. "How would you implement a file upload endpoint with Express?"
+
+```javascript
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs').promises;
+
+const app = express();
+const uploadDir = 'uploads';
+
+// Ensure upload directory exists
+async function ensureUploadDir() {
+  try {
+    await fs.mkdir(uploadDir, { recursive: true });
+  } catch (err) {
+    console.error('Error creating upload directory:', err);
+  }
+}
+
+// Configure multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
+    const ext = path.extname(file.originalname);
+    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 5 // Max 5 files
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type'));
+    }
+  }
+});
+
+// File upload endpoint
+app.post('/upload', upload.array('files', 5), async (req, res, next) => {
+  try {
+    const fileInfo = req.files.map(file => ({
+      filename: file.filename,
+      originalname: file.originalname,
+      size: file.size,
+      mimetype: file.mimetype,
+      path: file.path
+    }));
+    
+    res.json({
+      success: true,
+      message: 'Files uploaded successfully',
+      files: fileInfo
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Upload error:', err);
+  res.status(400).json({
+    success: false,
+    message: err.message || 'File upload failed'
+  });
+});
+
+// Initialize and start server
+async function startServer() {
+  await ensureUploadDir();
   
-* "How do you implement request timeouts in Node.js?"
-  - Answer: Use req.setTimeout() or socket.setTimeout() on server. For client requests, use AbortController or timeout in http.request options. Handle timeout errors appropriately.
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Upload directory: ${path.resolve(uploadDir)}`);
+  });
+}
+
+startServer().catch(console.error);
+```
+
+#### 5. "How would you implement a file-based key-value store?"
+
+```javascript
+const fs = require('fs').promises;
+const path = require('path');
+const crypto = require('crypto');
+
+class FileStore {
+  constructor(storagePath = './storage') {
+    this.storagePath = path.resolve(storagePath);
+    this.ensureStorageDir();
+  }
+  
+  async ensureStorageDir() {
+    try {
+      await fs.mkdir(this.storagePath, { recursive: true });
+    } catch (err) {
+      if (err.code !== 'EEXIST') throw err;
+    }
+  }
+  
+  getKeyPath(key) {
+    // Create a hash of the key for the filename
+    const hash = crypto.createHash('sha256').update(key).digest('hex');
+    return path.join(this.storagePath, `${hash}.json`);
+  }
+  
+  async set(key, value, ttl = 0) {
+    const filePath = this.getKeyPath(key);
+    const expiresAt = ttl > 0 ? Date.now() + ttl * 1000 : 0;
+    
+    const data = {
+      value,
+      metadata: {
+        key,
+        createdAt: new Date().toISOString(),
+        expiresAt: expiresAt || null,
+        ttl
+      }
+    };
+    
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+    return data;
+  }
+  
+  async get(key) {
+    const filePath = this.getKeyPath(key);
+    
+    try {
+      const data = JSON.parse(await fs.readFile(filePath, 'utf8'));
+      
+      // Check if the entry has expired
+      if (data.metadata.expiresAt && Date.now() > data.metadata.expiresAt) {
+        await this.delete(key);
+        return null;
+      }
+      
+      return data.value;
+    } catch (err) {
+      if (err.code === 'ENOENT') return null;
+      throw err;
+    }
+  }
+  
+  async delete(key) {
+    const filePath = this.getKeyPath(key);
+    
+    try {
+      await fs.unlink(filePath);
+      return true;
+    } catch (err) {
+      if (err.code === 'ENOENT') return false;
+      throw err;
+    }
+  }
+  
+  async clear() {
+    try {
+      const files = await fs.readdir(this.storagePath);
+      await Promise.all(
+        files.map(file => fs.unlink(path.join(this.storagePath, file)))
+      );
+      return true;
+    } catch (err) {
+      console.error('Error clearing storage:', err);
+      return false;
+    }
+  }
+  
+  async cleanup() {
+    // Remove expired entries
+    try {
+      const files = await fs.readdir(this.storagePath);
+      
+      await Promise.all(
+        files.map(async (file) => {
+          try {
+            const filePath = path.join(this.storagePath, file);
+            const data = JSON.parse(await fs.readFile(filePath, 'utf8'));
+            
+            if (data.metadata.expiresAt && Date.now() > data.metadata.expiresAt) {
+              await fs.unlink(filePath);
+            }
+          } catch (err) {
+            console.error('Error cleaning up file:', file, err);
+          }
+        })
+      );
+    } catch (err) {
+      console.error('Error during cleanup:', err);
+    }
+  }
+}
+
+// Usage
+async function example() {
+  const store = new FileStore();
+  
+  // Set a value with 60-second TTL
+  await store.set('user:123', { name: 'Alice', age: 30 }, 60);
+  
+  // Get a value
+  const user = await store.get('user:123');
+  console.log('User:', user);
+  
+  // Clean up expired entries
+  await store.cleanup();
+  
+  // Clear all data
+  // await store.clear();
+}
+
+example().catch(console.error);
+```
+
+### Performance Tips
+
+1. **Use Streams for Large Files**: Always use streams when working with files larger than a few MB
+2. **Batch Operations**: For multiple file operations, use `Promise.all()` for parallel processing
+3. **File Descriptors**: Be mindful of file descriptor limits when working with many files
+4. **Memory Management**: Avoid loading large files into memory all at once
+5. **Error Handling**: Always handle filesystem errors, especially for operations that might fail (file not found, permission issues, etc.)
+
+## 8. Express.js
+
+Express.js is a minimal and flexible Node.js web application framework that provides a robust set of features for web and mobile applications. It simplifies the process of building web applications by providing a thin layer of fundamental web application features, without obscuring Node.js features.
+
+### Core Concepts
+
+#### 1. Basic Express Application
+
+```javascript
+const express = require('express');
+const app = express();
+const PORT = 3000;
+
+// Middleware to parse JSON bodies
+app.use(express.json());
+
+// Simple route
+app.get('/', (req, res) => {
+  res.send('Hello, Express!');
+});
+
+// Route with parameters
+app.get('/users/:userId', (req, res) => {
+  res.json({ userId: req.params.userId });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+```
+
+#### 2. Middleware
+
+Middleware functions have access to the request object (req), the response object (res), and the next middleware function in the application's request-response cycle.
+
+```javascript
+// Application-level middleware
+app.use((req, res, next) => {
+  console.log('Time:', Date.now());
+  next();
+});
+
+// Route-specific middleware
+const requireAuth = (req, res, next) => {
+  if (req.headers.authorization) {
+    next();
+  } else {
+    res.status(401).send('Authentication required');
+  }
+};
+
+app.get('/protected', requireAuth, (req, res) => {
+  res.send('Protected content');
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+```
+
+#### 3. Routing
+
+```javascript
+const router = express.Router();
+
+// Middleware specific to this router
+router.use((req, res, next) => {
+  console.log('Time:', Date.now());
+  next();
+});
+
+// Define routes
+router.get('/', (req, res) => {
+  res.send('Home page');
+});
+
+router.get('/about', (req, res) => {
+  res.send('About page');
+});
+
+// Mount the router
+app.use('/pages', router);
+```
+
+### Advanced Features
+
+#### 1. File Uploads with Multer
+
+```javascript
+const multer = require('multer');
+const path = require('path');
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png|gif/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    }
+    cb('Error: Images only! (jpeg|jpg|png|gif)');
+  },
+});
+
+app.post('/upload', upload.single('avatar'), (req, res) => {
+  res.json({ file: req.file });
+});
+```
+
+#### 2. Authentication with JWT
+
+```javascript
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
+// Mock user database
+const users = [];
+
+// Register route
+app.post('/register', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    
+    // Check if user exists
+    if (users.some(user => user.username === username)) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+    
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = { id: Date.now().toString(), username, password: hashedPassword };
+    users.push(user);
+    
+    // Generate JWT
+    const token = jwt.sign(
+      { userId: user.id, username: user.username },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '1h' }
+    );
+    
+    res.status(201).json({ token });
+  } catch (error) {
+    res.status(500).json({ message: 'Registration failed' });
+  }
+});
+
+// Login route
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  
+  const user = users.find(u => u.username === username);
+  if (!user) {
+    return res.status(401).json({ message: 'Authentication failed' });
+  }
+  
+  const isValidPassword = await bcrypt.compare(password, user.password);
+  if (!isValidPassword) {
+    return res.status(401).json({ message: 'Authentication failed' });
+  }
+  
+  const token = jwt.sign(
+    { userId: user.id, username: user.username },
+    process.env.JWT_SECRET || 'your-secret-key',
+    { expiresIn: '1h' }
+  );
+  
+  res.json({ token });
+});
+
+// Protected route
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) return res.sendStatus(401);
+  
+  jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+};
+
+app.get('/profile', authenticateToken, (req, res) => {
+  res.json({ user: req.user });
+});
+```
+
+#### 3. Rate Limiting
+
+```javascript
+const rateLimit = require('express-rate-limit');
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later',
+});
+
+app.use('/api/', limiter);
+```
+
+### Common Interview Questions
+
+#### 1. "What is middleware in Express.js?"
+
+**Answer:**
+Middleware functions are functions that have access to the request object (req), the response object (res), and the next middleware function in the application's request-response cycle. They can:
+- Execute any code
+- Make changes to the request and response objects
+- End the request-response cycle
+- Call the next middleware in the stack
+
+Example:
+```javascript
+app.use((req, res, next) => {
+  console.log('Request URL:', req.originalUrl);
+  next();
+});
+```
+
+#### 2. "How does error handling work in Express?"
+
+**Answer:**
+Express comes with a default error handler, but you can create custom error handling middleware:
+
+1. **Synchronous errors** are caught automatically
+2. **Asynchronous errors** must be passed to `next()`
+3. Error-handling middleware has 4 parameters: `(err, req, res, next)`
+
+Example:
+```javascript
+// Route that throws an error
+app.get('/error', (req, res, next) => {
+  try {
+    // Some operation that might fail
+    throw new Error('Something went wrong!');
+  } catch (err) {
+    next(err); // Pass to error handler
+  }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    error: 'Something went wrong!',
+    message: err.message
+  });
+});
+```
+
+#### 3. "How would you implement authentication in an Express application?"
+
+**Answer:**
+A common approach is to use JWT (JSON Web Tokens) with Passport.js or a similar library. The flow is:
+
+1. User logs in with credentials
+2. Server verifies credentials and issues a JWT
+3. Client stores the token (usually in localStorage or cookies)
+4. Client sends the token in the Authorization header for subsequent requests
+5. Server verifies the token on protected routes
+
+Example implementation (simplified):
+```javascript
+// Login route
+app.post('/login', (req, res) => {
+  // Verify credentials (in a real app, check against database)
+  if (req.body.username === 'admin' && req.body.password === 'password') {
+    // Create token
+    const token = jwt.sign(
+      { username: req.body.username },
+      'your-secret-key',
+      { expiresIn: '1h' }
+    );
+    res.json({ token });
+  } else {
+    res.status(401).json({ message: 'Invalid credentials' });
+  }
+});
+
+// Protected route
+app.get('/protected', (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.sendStatus(401);
+
+  jwt.verify(token, 'your-secret-key', (err, user) => {
+    if (err) return res.sendStatus(403);
+    res.json({ message: 'Protected data', user });
+  });
+});
+```
+
+#### 4. "What is the difference between app.use() and app.METHOD()?"
+
+**Answer:**
+
+| Feature           | `app.use()`                          | `app.METHOD()` (e.g., `app.get()`) |
+|-------------------|--------------------------------------|-----------------------------------|
+| Purpose          | For mounting middleware functions    | For handling specific HTTP methods and paths |
+| Path Matching    | Matches the beginning of the path    | Exact match or pattern matching   |
+| Method Matching  | Matches all HTTP methods             | Matches only the specified method |
+| Order            | Executed in the order they are defined | Executed based on route matching  |
+| Next Parameter   | Has access to `next()`               | Also has access to `next()`       |
+
+Example:
+```javascript
+// This middleware runs for all requests
+app.use((req, res, next) => {
+  console.log('Time:', Date.now());
+  next();
+});
+
+// This only runs for GET requests to /users
+app.get('/users', (req, res) => {
+  res.send('List of users');
+});
+```
+
+#### 5. "How would you handle file uploads in Express?"
+
+**Answer:**
+Use the `multer` middleware to handle file uploads. Here's a complete example:
+
+```javascript
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Configure storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = 'uploads/';
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+// File filter
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only JPEG, PNG, and GIF are allowed.'), false);
+  }
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+});
+
+// Single file upload
+app.post('/upload', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: 'No file uploaded' });
+  }
+  res.json({
+    message: 'File uploaded successfully',
+    file: req.file,
+  });
+});
+
+// Multiple files upload (up to 5)
+app.post('/upload-multiple', upload.array('files', 5), (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ message: 'No files uploaded' });
+  }
+  res.json({
+    message: 'Files uploaded successfully',
+    files: req.files,
+  });
+});
+```
+
+### Best Practices
+
+1. **Use environment variables** for configuration (e.g., database credentials, API keys)
+2. **Implement proper error handling** with custom error classes and middleware
+3. **Use async/await** with try/catch blocks for async operations
+4. **Validate request data** using libraries like Joi or express-validator
+5. **Implement rate limiting** to prevent abuse
+6. **Use Helmet.js** to set secure HTTP headers
+7. **Enable CORS** properly if your API is accessed from different domains
+8. **Use compression** to reduce response size
+9. **Implement proper logging** for debugging and monitoring
+10. **Use a process manager** like PM2 in production
+
+## 9. Networking in Node.js
+
+### Core Networking Modules
+
+Node.js provides several built-in modules for networking:
+- **http**: For creating HTTP servers and clients
+- **https**: For creating HTTPS servers and clients
+- **net**: For low-level TCP networking
+- **dgram**: For UDP datagram sockets
+- **tls**: For TLS/SSL encryption
+- **dns**: For domain name resolution
+
+### 1. Creating an HTTP Server
+
+```javascript
+const http = require('http');
+
+// Create a basic HTTP server
+const server = http.createServer((req, res) => {
+  // Parse URL and method
+  const { method, url, headers } = req;
+  
+  // Handle different routes
+  if (method === 'GET' && url === '/') {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('Hello, World!\n');
+  } 
+  else if (method === 'POST' && url === '/data') {
+    let body = '';
+    
+    // Collect request data
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    
+    // When all data is received
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ status: 'success', data }));
+      } catch (err) {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+      }
+    });
+  } 
+  else {
+    res.statusCode = 404;
+    res.end('Not Found\n');
+  }
+});
+
+// Start the server
+const PORT = 3000;
+server.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}/`);
+});
+
+// Handle server errors
+server.on('error', (err) => {
+  console.error('Server error:', err);
+});
+```
+
+### 2. Making HTTP Requests
+
+#### Using the `http` module:
+
+```javascript
+const http = require('http');
+const https = require('https');
+
+function fetchJSON(url) {
+  return new Promise((resolve, reject) => {
+    const client = url.startsWith('https') ? https : http;
+    
+    const req = client.get(url, (res) => {
+      // Check status code
+      if (res.statusCode < 200 || res.statusCode >= 300) {
+        return reject(new Error(`Status Code: ${res.statusCode}`));
+      }
+      
+      // Collect response data
+      const data = [];
+      res.on('data', chunk => data.push(chunk));
+      
+      // Parse the response
+      res.on('end', () => {
+        try {
+          const body = JSON.parse(Buffer.concat(data).toString());
+          resolve(body);
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+    
+    // Handle errors
+    req.on('error', reject);
+    
+    // Set timeout
+    req.setTimeout(5000, () => {
+      req.destroy(new Error('Request timeout'));
+    });
+    
+    // End the request
+    req.end();
+  });
+}
+
+// Usage
+async function main() {
+  try {
+    const data = await fetchJSON('https://api.github.com/users/octocat');
+    console.log('GitHub user:', data);
+  } catch (err) {
+    console.error('Error:', err.message);
+  }
+}
+
+main();
+```
+
+#### Using the `https` module (similar to `http` but with SSL/TLS):
+
+```javascript
+const https = require('https');
+
+// Similar to http.get but with SSL/TLS
+https.get('https://api.github.com/users/octocat', (res) => {
+  console.log('statusCode:', res.statusCode);
+  console.log('headers:', res.headers);
+  
+  let data = '';
+  res.on('data', (chunk) => {
+    data += chunk;
+  });
+  
+  res.on('end', () => {
+    try {
+      const parsed = JSON.parse(data);
+      console.log(parsed);
+    } catch (err) {
+      console.error('Error parsing JSON:', err);
+    }
+  });
+  
+}).on('error', (err) => {
+  console.error('Error:', err.message);
+});
+```
+
+### 3. Working with TCP Sockets
+
+#### TCP Server
+
+```javascript
+const net = require('net');
+
+// Create a TCP server
+const server = net.createServer((socket) => {
+  console.log('Client connected');
+  
+  // Handle incoming data
+  socket.on('data', (data) => {
+    const message = data.toString().trim();
+    console.log(`Received: ${message}`);
+    
+    // Echo back the message in uppercase
+    socket.write(`Echo: ${message.toUpperCase()}\n`);
+    
+    // Close connection on 'exit' command
+    if (message.toLowerCase() === 'exit') {
+      socket.end('Goodbye!\n');
+    }
+  });
+  
+  // Handle client disconnection
+  socket.on('end', () => {
+    console.log('Client disconnected');
+  });
+  
+  // Handle errors
+  socket.on('error', (err) => {
+    console.error('Socket error:', err.message);
+  });
+});
+
+// Start the server
+const PORT = 3001;
+server.listen(PORT, () => {
+  console.log(`TCP server listening on port ${PORT}`);
+});
+
+// Handle server errors
+server.on('error', (err) => {
+  console.error('Server error:', err.message);
+});
+```
+
+#### TCP Client
+
+```javascript
+const net = require('net');
+const readline = require('readline');
+
+// Create interface for reading from stdin
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  prompt: '> '
+});
+
+// Create a TCP client
+const client = net.createConnection({ port: 3001 }, () => {
+  console.log('Connected to server');
+  rl.prompt();
+});
+
+// Handle incoming data
+client.on('data', (data) => {
+  console.log(data.toString().trim());
+  rl.prompt();
+});
+
+// Handle connection close
+client.on('end', () => {
+  console.log('Disconnected from server');
+  process.exit(0);
+});
+
+// Handle errors
+client.on('error', (err) => {
+  console.error('Connection error:', err.message);
+  process.exit(1);
+});
+
+// Read input from user and send to server
+rl.on('line', (line) => {
+  client.write(line);
+  if (line.toLowerCase() === 'exit') {
+    client.end();
+    rl.close();
+  } else {
+    rl.prompt();
+  }
+}).on('close', () => {
+  console.log('Goodbye!');
+  process.exit(0);
+});
+```
+
+### 4. Handling File Uploads with Streams
+
+```javascript
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const { pipeline } = require('stream/promises');
+
+const server = http.createServer(async (req, res) => {
+  if (req.method === 'POST' && req.url === '/upload') {
+    try {
+      const filename = `upload-${Date.now()}.dat`;
+      const filePath = path.join(__dirname, 'uploads', filename);
+      
+      // Ensure uploads directory exists
+      await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
+      
+      // Stream the request to a file
+      const fileStream = fs.createWriteStream(filePath);
+      
+      // Use pipeline for proper error handling
+      await pipeline(req, fileStream);
+      
+      res.statusCode = 200;
+      res.end(JSON.stringify({ 
+        success: true, 
+        message: 'File uploaded successfully',
+        filename
+      }));
+    } catch (err) {
+      console.error('Upload error:', err);
+      res.statusCode = 500;
+      res.end(JSON.stringify({ 
+        success: false, 
+        error: 'Failed to upload file' 
+      }));
+    }
+  } else {
+    res.statusCode = 404;
+    res.end('Not Found\n');
+  }
+});
+
+const PORT = 3002;
+server.listen(PORT, () => {
+  console.log(`File upload server running on port ${PORT}`);
+});
+```
+
+### 5. Implementing a Simple HTTP Proxy
+
+```javascript
+const http = require('http');
+const https = require('https');
+const { URL } = require('url');
+
+const proxy = http.createServer((clientReq, clientRes) => {
+  try {
+    // Parse the target URL from the request
+    const targetUrl = new URL(clientReq.url, 'http://example.com');
+    
+    // Determine the protocol
+    const protocol = targetUrl.protocol === 'https:' ? https : http;
+    
+    console.log(`Proxying request to: ${targetUrl.href}`);
+    
+    // Forward the request to the target server
+    const proxyReq = protocol.request({
+      hostname: targetUrl.hostname,
+      port: targetUrl.port || (protocol === https ? 443 : 80),
+      path: targetUrl.pathname + targetUrl.search,
+      method: clientReq.method,
+      headers: { ...clientReq.headers, host: targetUrl.hostname }
+    }, (proxyRes) => {
+      // Forward the response to the client
+      clientRes.writeHead(proxyRes.statusCode || 500, proxyRes.headers);
+      proxyRes.pipe(clientRes);
+    });
+    
+    // Handle errors
+    proxyReq.on('error', (err) => {
+      console.error('Proxy request error:', err);
+      clientRes.statusCode = 502;
+      clientRes.end('Proxy error');
+    });
+    
+    // Forward the request body
+    clientReq.pipe(proxyReq);
+    
+  } catch (err) {
+    console.error('Proxy error:', err);
+    clientRes.statusCode = 500;
+    clientRes.end('Internal server error');
+  }
+});
+
+// Handle proxy server errors
+proxy.on('error', (err) => {
+  console.error('Proxy server error:', err);
+});
+
+const PORT = 3003;
+proxy.listen(PORT, () => {
+  console.log(`HTTP proxy server running on port ${PORT}`);
+  console.log(`Try: curl -x http://localhost:${PORT} https://api.github.com/users/octocat`);
+});
+```
+
+### Common Interview Questions & Answers
+
+#### 1. "What's the difference between HTTP and HTTPS in Node.js?"
+- **Answer**: 
+  - **HTTP**: Plain text protocol, no encryption, default port 80
+  - **HTTPS**: Secure protocol with SSL/TLS encryption, default port 443
+  - In Node.js, they're separate modules (`http` and `https`) but share similar APIs
+  - HTTPS requires SSL/TLS certificates (can be self-signed for development)
+
+#### 2. "How does Node.js handle concurrency with its single-threaded model?"
+- **Answer**:
+  - Uses an event loop to handle I/O operations asynchronously
+  - Offloads I/O operations to the system kernel (which handles them in separate threads)
+  - Uses a thread pool for CPU-intensive operations (file I/O, DNS, etc.)
+  - Processes callbacks when I/O operations complete
+  - Scales well for I/O-bound applications but can be limited for CPU-bound tasks
+
+#### 3. "What are the differences between TCP and UDP in Node.js?"
+- **TCP**:
+  - Connection-oriented protocol
+  - Reliable, ordered delivery
+  - Error checking and recovery
+  - Used by HTTP, HTTPS, FTP, etc.
+  ```javascript
+  const net = require('net');
+  const server = net.createServer((socket) => { /* handle connection */ });
+  ```
+  
+- **UDP**:
+  - Connectionless protocol
+  - Unreliable, no ordering guarantees
+  - Lower overhead, faster
+  - Used for DNS, video streaming, online games
+  ```javascript
+  const dgram = require('dgram');
+  const server = dgram.createSocket('udp4');
+  server.on('message', (msg, rinfo) => { /* handle message */ });
+  ```
+
+#### 4. "How would you implement rate limiting in a Node.js HTTP server?"
+
+```javascript
+const http = require('http');
+
+// Store request counts per IP
+const requestCounts = new Map();
+const RATE_LIMIT = 100; // Max requests
+const WINDOW_MS = 60 * 1000; // 1 minute
+
+const server = http.createServer((req, res) => {
+  const clientIP = req.socket.remoteAddress;
+  const now = Date.now();
+  
+  // Initialize or clean up old entries
+  if (!requestCounts.has(clientIP)) {
+    requestCounts.set(clientIP, []);
+  }
+  
+  // Remove timestamps older than the window
+  const timestamps = requestCounts.get(clientIP).filter(ts => now - ts < WINDOW_MS);
+  
+  // Check rate limit
+  if (timestamps.length >= RATE_LIMIT) {
+    res.statusCode = 429; // Too Many Requests
+    res.setHeader('Retry-After', Math.ceil(WINDOW_MS / 1000));
+    return res.end('Rate limit exceeded. Please try again later.');
+  }
+  
+  // Add current timestamp
+  timestamps.push(now);
+  requestCounts.set(clientIP, timestamps);
+  
+  // Process the request
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify({
+    remaining: RATE_LIMIT - timestamps.length,
+    reset: Math.ceil(WINDOW_MS / 1000)
+  }));
+});
+
+// Clean up old entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, timestamps] of requestCounts.entries()) {
+    const filtered = timestamps.filter(ts => now - ts < WINDOW_MS);
+    if (filtered.length === 0) {
+      requestCounts.delete(ip);
+    } else {
+      requestCounts.set(ip, filtered);
+    }
+  }
+}, WINDOW_MS);
+
+const PORT = 3004;
+server.listen(PORT, () => {
+  console.log(`Rate-limited server running on port ${PORT}`);
+  console.log(`Try: curl http://localhost:${PORT}`);
+});
+```
+
+#### 5. "How would you implement a WebSocket server in Node.js?"
+
+```javascript
+const http = require('http');
+const { createServer } = require('http');
+const { WebSocketServer } = require('ws');
+
+// Create HTTP server
+const server = createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('WebSocket server is running\n');
+});
+
+// Create WebSocket server
+const wss = new WebSocketServer({ server });
+
+// Track connected clients
+const clients = new Set();
+
+wss.on('connection', (ws, req) => {
+  const clientId = req.socket.remoteAddress;
+  console.log(`Client connected: ${clientId}`);
+  
+  // Add to clients set
+  clients.add(ws);
+  
+  // Broadcast to all clients when someone connects
+  broadcast(`${clientId} joined the chat`, ws);
+  
+  // Handle incoming messages
+  ws.on('message', (message) => {
+    console.log(`Received: ${message}`);
+    // Broadcast the message to all clients
+    broadcast(`${clientId}: ${message}`, ws);
+  });
+  
+  // Handle client disconnection
+  ws.on('close', () => {
+    console.log(`Client disconnected: ${clientId}`);
+    clients.delete(ws);
+    broadcast(`${clientId} left the chat`, ws);
+  });
+  
+  // Handle errors
+  ws.on('error', (error) => {
+    console.error(`WebSocket error: ${error.message}`);
+  });
+});
+
+// Broadcast to all clients except the sender
+function broadcast(message, sender) {
+  for (const client of clients) {
+    if (client !== sender && client.readyState === 1) { // 1 = OPEN
+      client.send(message);
+    }
+  }
+}
+
+const PORT = 3005;
+server.listen(PORT, () => {
+  console.log(`WebSocket server running on port ${PORT}`);
+  console.log('Connect using: new WebSocket(`ws://localhost:3005`)');
+});
+```
+
+### Performance Considerations
+
+1. **Connection Pooling**:
+   - Reuse HTTP/HTTPS agents to avoid creating new connections
+   - Configure `maxSockets` to limit concurrent connections
+   ```javascript
+   const http = require('http');
+   const agent = new http.Agent({
+     keepAlive: true,
+     maxSockets: 10,
+     timeout: 60000 // 1 minute
+   });
+   
+   http.get({ hostname: 'example.com', port: 80, path: '/', agent }, (res) => {
+     // Handle response
+   });
+   ```
+
+2. **Timeouts**:
+   - Always set timeouts for requests and responses
+   - Handle timeouts gracefully with appropriate error messages
+   ```javascript
+   const req = http.request(options, (res) => {
+     // Handle response
+   });
+   
+   req.setTimeout(5000, () => {
+     req.destroy(new Error('Request timeout'));
+   });
+   
+   req.on('error', (err) => {
+     console.error('Request error:', err);
+   });
+   
+   req.end();
+   ```
+
+3. **Compression**:
+   - Use compression middleware for HTTP servers to reduce bandwidth
+   - Support gzip/deflate for responses
+   ```javascript
+   const zlib = require('zlib');
+   const http = require('http');
+   
+   http.createServer((req, res) => {
+     const acceptEncoding = req.headers['accept-encoding'] || '';
+     let gzip;
+     
+     if (acceptEncoding.includes('gzip')) {
+       res.setHeader('Content-Encoding', 'gzip');
+       gzip = zlib.createGzip();
+       gzip.pipe(res);
+     } else {
+       gzip = res;
+     }
+     
+     // Your response
+     gzip.end('Hello, compressed world!');
+   }).listen(3006);
+   ```
+
+4. **Connection Handling**:
+   - Implement proper connection pooling
+   - Handle connection errors and retries
+   - Implement circuit breakers for failed services
+
+5. **Security**:
+   - Always validate and sanitize input
+   - Use HTTPS for secure communication
+   - Implement proper CORS headers
+   - Rate limit API endpoints
+   - Use HTTP security headers
 
 ## 9. Express.js (or other frameworks)
 
