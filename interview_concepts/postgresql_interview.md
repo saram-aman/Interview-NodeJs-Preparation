@@ -12,11 +12,13 @@ This document covers essential PostgreSQL concepts and common interview question
 
 **Key Concepts:**
 
-* **ACID Properties:**
-  - Atomicity: Transactions are all-or-nothing
-  - Consistency: Database remains in a consistent state
-  - Isolation: Concurrent transactions don't interfere
   - Durability: Committed transactions survive permanently
+
+* **Transaction Isolation Levels:**
+  PostgreSQL implements four isolation levels (though `Read Uncommitted` behaves as `Read Committed`):
+  1. **Read Committed** (Default): A query sees only data committed before the **query** began. Prevents Dirty Reads.
+  2. **Repeatable Read**: All queries in a transaction see the data as it was when the **transaction** started. Prevents Non-repeatable Reads.
+  3. **Serializable**: The strictest level. Guarantees that the result is the same as if transactions were run one after another. Prevents **Serialization Anomalies** (including Phantom Reads).
 
 * **Data Types:**
   - Numeric: INTEGER, BIGINT, DECIMAL, SERIAL, etc.
@@ -52,12 +54,13 @@ This document covers essential PostgreSQL concepts and common interview question
 
 **Indexing:**
 
-* **B-tree:** Default index type, good for equality and range queries
-* **Hash:** Only for equality comparisons
-* **GIN (Generalized Inverted Index):** For composite values (arrays, JSONB, full-text search)
-* **GiST (Generalized Search Tree):** For geometric data and full-text search
-* **SP-GiST (Space-Partitioned GiST):** For non-balanced data structures
-* **BRIN (Block Range INdex):** For very large tables with natural ordering
+* **B-tree:** Default index type, good for equality and range queries.
+* **Hash:** Only for equality comparisons.
+* **GIN (Generalized Inverted Index):** For composite values (arrays, JSONB, full-text search). 
+    - *Use Case*: Speeding up `@>` (contains) operators on JSONB columns.
+* **GiST (Generalized Search Tree):** For geometric data and full-text search.
+* **SP-GiST (Space-Partitioned GiST):** For non-balanced data structures.
+* **BRIN (Block Range INdex):** For very large tables with natural ordering (e.g., timestamped logs). It stores the min/max value for a range of blocks, making it incredibly small compared to B-tree.
 
 **Partitioning:**
 
@@ -129,13 +132,15 @@ This document covers essential PostgreSQL concepts and common interview question
 
 ## 5. Performance and Maintenance
 
-**Vacuuming:**
-
-* Removes dead tuples
-* Updates the visibility map
-* Updates statistics for the query planner
-* Can be VACUUM (locks tables) or VACUUM FULL (rewrites tables)
 * Autovacuum daemon automates this process
+
+**Database Bloat:**
+Bloat occurs when tables or indexes occupy more space than they realistically need. This happens because `VACUUM` marks space as reusable but doesn't usually return it to the OS.
+- **Identification**: Use extensions like `pgstattuple` or scripts to find tables with high "dead tuple" ratios.
+- **Fix**: `VACUUM FULL` or `REINDEX` (both lock tables) or `pg_repack` (online tool).
+
+**ANALYZE:**
+Updates the **statistics** used by the query planner. Without up-to-date stats, the planner might choose a slow Sequential Scan when an Index Scan would be faster.
 
 **Replication:**
 
@@ -183,7 +188,7 @@ This document covers essential PostgreSQL concepts and common interview question
 ### Basic Level:
 
 1. **What is PostgreSQL and what are its key features?**
-   - Open-source, ACID-compliant, extensible, supports JSON, full-text search, and advanced data types.
+   - Open-source, ACID-compliant, extensible, supports JSON, full-text search, and advanced data types. In interviews it helps to highlight MVCC-based concurrency, powerful indexing options, and rich extensibility (custom types, functions, and extensions like PostGIS).
 
 2. **Explain the difference between CHAR, VARCHAR, and TEXT data types.**
    - CHAR: Fixed-length, blank-padded
@@ -191,7 +196,7 @@ This document covers essential PostgreSQL concepts and common interview question
    - TEXT: Variable unlimited length
 
 3. **What is a sequence in PostgreSQL?**
-   - Object that generates a sequence of integers, often used for primary keys.
+   - Object that generates a sequence of integers, often used for primary keys. From PostgreSQL 10 onward you’ll usually see `GENERATED AS IDENTITY` used instead of manually creating sequences.
 
 ### Intermediate Level:
 
@@ -205,7 +210,7 @@ This document covers essential PostgreSQL concepts and common interview question
    - Temporary result set for complex queries, improves readability, can be recursive.
 
 3. **How do you optimize a slow query in PostgreSQL?**
-   - Use EXPLAIN ANALYZE, create appropriate indexes, rewrite query, update statistics.
+   - Use EXPLAIN ANALYZE, create appropriate indexes, rewrite query, update statistics. Also check for unnecessary sorts/joins, tune work_mem and effective_cache_size, and consider denormalization or materialized views if the query is inherently heavy but run frequently.
 
 ### Advanced Level:
 

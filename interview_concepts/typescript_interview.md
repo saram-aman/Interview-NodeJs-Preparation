@@ -99,10 +99,10 @@ if (pet instanceof Bird) {
 **Interview Questions:**
 
 * "What are the benefits of using TypeScript over JavaScript?"
-  - Answer: Static typing catches errors early, better IDE support, enhanced code maintainability, improved team collaboration, and clearer code documentation through types.
+  - Answer: Static typing catches errors early, better IDE support, enhanced code maintainability, improved team collaboration, and clearer code documentation through types. It also makes large-scale refactors and API changes much safer because the compiler will point out all the broken call sites.
 
 * "Explain the difference between `interface` and `type`"
-  - Answer: Interfaces are extendable and can merge declarations, while types are more flexible with unions/intersections and can't be changed after creation.
+  - Answer: Interfaces are extendable and can merge declarations, while types are more flexible with unions/intersections and can't be changed after creation. In practice, interfaces are great for describing object shapes and public contracts, while type aliases shine when you build complex unions, mapped types, or conditional types.
 
 * "How does type inference work in TypeScript?"
   - Answer: TypeScript automatically determines types based on variable initialization, return values, and context, reducing need for explicit annotations.
@@ -182,6 +182,14 @@ type Unpacked<T> =
     T extends (...args: any[]) => infer U ? U :
     T extends Promise<infer U> ? U :
     T;
+
+// Example: Extract return type of a function
+type MyFunc = (a: number) => string;
+type Result = MyFunc extends (...args: any[]) => infer R ? R : never; // string
+
+// Distributive Conditional Types
+type ToArray<T> = T extends any ? T[] : never;
+type StrOrNumArray = ToArray<string | number>; // string[] | number[]
 ```
 
 **Template Literal Types:**
@@ -207,6 +215,33 @@ Common built-in utility types:
 - `Parameters<T>`: Obtain the parameters of a function type in a tuple
 - `ReturnType<T>`: Obtain the return type of a function type
 - `InstanceType<T>`: Obtain the instance type of a constructor function type
+
+**Internal Implementations (How they work):**
+```typescript
+// ReturnType uses 'infer' to capture the return value
+type MyReturnType<T extends (...args: any) => any> = 
+    T extends (...args: any) => infer R ? R : any;
+
+// Parameters captures argument types as a tuple
+type MyParameters<T extends (...args: any) => any> = 
+    T extends (...args: infer P) => any ? P : never;
+
+// Pick uses mapped types and indexed access
+type MyPick<T, K extends keyof T> = {
+    [P in K]: T[P];
+};
+```
+
+### 2.4 Variance (Covariance & Contravariance)
+
+Understanding how types relate to their subtypes in complex structures:
+
+* **Covariance**: A type `T` is covariant if `Complex<Subtype>` can be assigned to `Complex<Base>`. 
+    - *Example*: In TypeScript, `readonly` arrays are covariant. `readonly string[]` can be assigned to `readonly (string | number)[]`.
+* **Contravariance**: A type `T` is contravariant if `Complex<Base>` can be assigned to `Complex<Subtype>`.
+    - *Example*: Function parameters are contravariant (with `strictFunctionTypes`). A function taking `Base` can be used where a function taking `Subtype` is expected.
+* **Invariance**: A type is invariant if it is neither covariant nor contravariant.
+    - *Example*: Regular (mutable) arrays in TypeScript are technically invariant in theory, but TypeScript allows some flexibility (bivariance) unless strict modes are used.
 
 **Understanding Interfaces:**
 
@@ -931,6 +966,12 @@ Observable.prototype.map = function (f) {
 
 * "What are project references used for?"
   - Answer: Organize large codebases into smaller projects, enabling incremental builds and better dependency management.
+  
+**Monorepo Setup with Project References:**
+Project references allow you to split a large TypeScript project into smaller, independent pieces. This improves build times and enforces modularity.
+- `composite: true`: Must be set in the referenced project's `tsconfig.json`.
+- `references: [{ path: "../core" }]`: Set in the consuming project.
+- This allows `tsc --build` to automatically rebuild only the necessary parts of the dependency graph.
 
 ## 10. Error Handling and Debugging
 

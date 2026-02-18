@@ -53,7 +53,7 @@ This document outlines key concepts and common interview questions related to No
 **Interview Questions:**
 
 * "How do you prevent SQL injection and XSS attacks in Node.js?"
-  - Answer: Use parameterized queries for SQL, and sanitize/escape user input. For XSS, use content security policies and HTML escape functions.
+  - Answer: Use parameterized queries for SQL, and sanitize/escape user input. For XSS, use content security policies and HTML escape functions, avoid dangerouslySetInnerHTML on the frontend, and prefer well-maintained template engines or frameworks that escape output by default.
 
 * "What are JWTs and how are they used for authentication?"
   - Answer: JSON Web Tokens are encoded strings containing user data and signatures, used to maintain stateless authentication between client and server.
@@ -66,10 +66,12 @@ This document outlines key concepts and common interview questions related to No
 
 * "What are security headers and why are they important?"
   - Answer: HTTP headers like HSTS, CSP protect against various attacks. They enforce HTTPS, prevent clickjacking, and control resource loading.
-
 * "How do you keep your Node.js application secure?"
+  - Answer: Follow OWASP best practices: validate and sanitize user input, use HTTPS everywhere, store secrets in environment variables or secret managers, and regularly patch Node and dependencies. Add security headers, rate limiting, and logging/alerts so you can detect and respond to suspicious behavior early.
 * "How do you handle user authentication and authorization?"
+  - Answer: Use well-tested libraries for JWT or session-based auth, hash passwords with bcrypt/Argon2, and store refresh tokens securely (often in httpOnly cookies). Apply authorization checks in middleware or route guards based on roles/permissions, and always enforce those checks on the server, not just in the UI.
 * "What are some common security vulnerabilities in Node.js applications, and how can they be mitigated?"
+  - Answer: Common issues include injection attacks (SQL/NoSQL/command), XSS, CSRF, insecure deserialization, and using vulnerable packages. Mitigate them with parameterized queries, output encoding/escaping, CSRF tokens and SameSite cookies, safe JSON parsing, dependency scanning (npm audit/Snyk), and least-privilege access to databases and services.
 
 ## 3. Use of Multi-Core or Single-Core Systems
 
@@ -101,7 +103,27 @@ This document outlines key concepts and common interview questions related to No
 * "How do you handle CPU-bound tasks in Node.js?"
   - Answer: Offload to worker threads, use child processes, or break into smaller chunks to prevent blocking the event loop.
 
+| Feature | **Cluster Module** | **Worker Threads** |
+| :--- | :--- | :--- |
+| **Model** | Multi-process | Multi-thread |
+| **Memory** | Separate memory space | Shared memory (`SharedArrayBuffer`) |
+| **Communication** | IPC (Inter-Process Communication) | MessageChannel / `postMessage` |
+| **Use Case** | Horizontal scaling (handling more requests) | CPU-intensive JavaScript tasks |
+| **Overhead** | High (full new instance of V8/Node) | Low (shares V8 instance) |
+| **Port Sharing**| Always (shares same server port) | No (typically orchestrated by main thread) |
+
 * "Explain the event loop, and how it relates to single threaded applications."
+  - Answer: The event loop is a mechanism that allows Node.js to perform non-blocking I/O operations by offloading operations to the system kernel whenever possible. Since modern kernels are multi-threaded, they can handle multiple operations executing in the background. When one of these operations completes, the kernel tells Node.js so that the appropriate callback may be added to the poll queue to eventually be executed.
+
+**Event Loop Phases (Detailed Breakdown):**
+1. **Timers:** Executes callbacks scheduled by `setTimeout()` and `setInterval()`.
+2. **Pending Callbacks:** Executes I/O callbacks deferred to the next loop iteration (e.g., some TCP errors).
+3. **Idle, Prepare:** Used internally by Node.js.
+4. **Poll:** Retrieves new I/O events; executes I/O related callbacks (nearly all with the exception of close callbacks, the ones scheduled by timers, and `setImmediate()`).
+5. **Check:** `setImmediate()` callbacks are invoked here.
+6. **Close Callbacks:** Executes close events (e.g., `socket.on('close', ...)`.
+
+*Note: `process.nextTick()` is NOT technically part of the event loop. It's processed after the current operation finishes, regardless of the current phase of the event loop.*
 
 ## 4. Timing Functions
 
@@ -131,16 +153,48 @@ This document outlines key concepts and common interview questions related to No
   - Answer: setTimeout for delays, setInterval for polling, setImmediate for I/O callbacks, nextTick for immediate async execution.
 
 * "How do timing functions interact with the Node.js event loop?"
+  - Answer: Timers (`setTimeout`/`setInterval`) are checked in the timers phase, `setImmediate` callbacks run in the check phase, and `process.nextTick` runs before the loop continues to the next phase. Understanding these phases explains why `nextTick` can starve I/O if overused, while `setImmediate` tends to be fairer.
 * "What is the difference between microtasks and macrotasks?"
+  - Answer: Microtasks (like resolved Promises and `process.nextTick`) run immediately after the current JavaScript stack before the event loop proceeds, while macrotasks (timers, I/O callbacks, `setImmediate`) are scheduled in specific event loop phases. This difference affects execution order and is crucial when reasoning about race conditions.
 * "When would you use `performance.now()`?"
+  - Answer: Use `performance.now()` when you need high‑resolution timing for profiling or benchmarking specific code paths; it gives sub‑millisecond timestamps relative to the process start and is preferred over `Date.now()` for measuring short durations.
 
 ## 5. Streams
 
 **Understanding Streams:**
 
 * Streams are a fundamental concept in Node.js for handling sequential data. They allow you to process data in chunks, without loading the entire dataset into memory.
-* Types: Readable, Writable, Duplex, Transform.
-* Piping: Efficiently connecting Readable streams to Writable streams.
+* Types: 
+  - **Readable**: Source of data (e.g., `fs.createReadStream`).
+  - **Writable**: Destination for data (e.g., `fs.createWriteStream`).
+  - **Duplex**: Both Readable and Writable (e.g., a TCP socket).
+  - **Transform**: A type of Duplex stream where the output is computed from the input (e.g., `zlib.createGzip`).
+* **Piping**: `stream.pipe(destination)` connects a readable stream to a writable one.
+* **Pipeline**: `stream.pipeline` (or `stream/promises` variant) is preferred for production as it cleans up all involved streams if one fails and provides better error handling than `pipe`.
+
+**Backpressure in Streams:**
+Backpressure occurs when the data producer is faster than the consumer. If the consumer (Writable stream) buffer fills up, it returns `false` on a `.write()` call. The producer should then stop writing until the consumer emits the `'drain'` event.
+* `pipe()` handles backpressure and `'drain'` events automatically.
+
+**Code Example (Pipeline with Error Handling):**
+```javascript
+const { pipeline } = require('stream/promises');
+const fs = require('fs');
+const zlib = require('zlib');
+
+async function compressFile(input, output) {
+  try {
+    await pipeline(
+      fs.createReadStream(input),
+      zlib.createGzip(),
+      fs.createWriteStream(output)
+    );
+    console.log('Compression successful');
+  } catch (err) {
+    console.error('Pipeline failed', err);
+  }
+}
+```
 
 **Use Cases:**
 
@@ -161,6 +215,7 @@ This document outlines key concepts and common interview questions related to No
   - Answer: Create readable stream from file, pipe through transform if needed, then to writable stream. Handles memory efficiently.
 
 * "When would you use a transform stream?"
+  - Answer: Use a transform stream when you need to modify or inspect data as it flows, such as compressing with gzip, encrypting/decrypting, filtering log lines, or parsing CSV/JSON records without loading the entire file into memory.
 
 ## 6. Event Emitter
 
@@ -185,6 +240,7 @@ This document outlines key concepts and common interview questions related to No
   - Answer: Custom event handling, like chat applications, logging systems, or any pub/sub pattern implementation.
 
 * "How do you handle errors in event emitters?"
+  - Answer: Always listen for the special `error` event and emit proper Error objects so problems can be logged or recovered from; an unhandled `error` event will crash the process. You can centralize this by having a top-level error listener or by wrapping emitters so that errors are converted into rejected promises or passed into your application’s error-handling middleware.
 
 ## 7. File System (fs) Module
 
@@ -332,6 +388,7 @@ This document outlines key concepts and common interview questions related to No
   - Answer: Use database driver or ORM methods. Create with insert/save, read with find/select, update with update/save, delete with remove/delete.
 
 * "How do you prevent SQL injection when working with databases?"
+  - Answer: Always use parameterized queries or prepared statements from your driver/ORM instead of building SQL strings manually. Combine that with strict input validation and least-privilege DB users so even if a query is abused, the damage is limited, and consider using query builders that escape values safely by default.
 
 ## 11. Error Handling:
 
@@ -380,10 +437,15 @@ This document outlines key concepts and common interview questions related to No
 
 **Interview Questions:**
 
-* "What testing frameworks have you used?"
 * "How do you write unit tests and integration tests in Node.js?"
+  - Answer: Use a test runner like Jest, Mocha, or the built‑in `node:test` module; write unit tests that isolate a single function or module, and integration tests that exercise multiple components together (e.g., hitting real HTTP endpoints or databases). Organize tests in a clear structure (e.g., `__tests__` or `test` folders) and run them in CI.
 * "What are the benefits of testing?"
+  - Answer: Tests catch regressions early, document expected behavior, make refactoring safer, and improve confidence when shipping changes. In Node backends specifically, they help you lock down critical flows like authentication, billing, and data migrations.
 * "How do you mock dependencies in your tests?"
+  - Answer: Use tools like Jest’s `jest.mock`, Sinon, or the `node:test` mocking APIs to replace real modules (databases, HTTP clients, queues) with fakes or stubs. Good mocking isolates the unit under test while still letting you write a few integration tests that hit real services in controlled environments.
+* "What is the built-in `node:test` runner?"
+  - Answer: Introduced in Node.js 18, it's a stable, built-in runner that eliminates the need for third-party tools like Jest/Mocha for many projects. It supports subtests, mocking, TAP output, and integrates well with coverage tools.
+  - Usage: `node --test`
 
 ---
 
@@ -819,6 +881,16 @@ Preparing detailed architectures, trade-offs, and failure-handling strategies fo
 - **Insecure deserialization**: Safe deserialization
 - **Using components with known vulnerabilities**: Dependency scanning
 - **Insufficient logging**: Security event logging
+
+### Secret Management
+- **Environment Variables**: Use `.env` files (via `dotenv`) for local dev, but avoid in production.
+- **Secret Managers**: Use AWS Secrets Manager, HashiCorp Vault, or Azure Key Vault for production secrets.
+- **Encryption**: Secrets should be encrypted at rest and only decrypted at runtime by authorized services.
+
+### Rate Limiting
+- **Implementation**: Use middleware like `express-rate-limit`.
+- **Distributed Limiting**: For multi-server setups, store rate-limit counters in **Redis** to ensure limits are enforced consistently across all instances.
+- **Algorithms**: Fixed window, Sliding window, or Token bucket.
 
 **Interview Questions:**
 - "How do you prevent NoSQL injection in Node.js?"

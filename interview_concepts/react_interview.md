@@ -26,7 +26,7 @@ This document outlines key concepts and common interview questions related to Re
     * "What are the differences between class components and functional components?"
       - Answer: Class components use lifecycle methods and 'this', while functional components use hooks. Functional components are simpler and preferred in modern React.
     * "Describe the purpose of `useEffect` and how it works."
-      - Answer: Handles side effects in functional components. Runs after render, can clean up with return function. Dependencies array controls when it runs.
+      - Answer: Handles side effects in functional components. Runs after render, can clean up with return function. Dependencies array controls when it runs and must include every external value you use, otherwise you risk subtle bugs like stale data or memory leaks.
     * "When would you use `useMemo` or `useCallback`?"
       - Answer: Use useMemo for expensive computations, useCallback for function memoization. Both optimize performance by preventing unnecessary recalculations/rerenders.
     * "How do you optimize React component performance?"
@@ -136,7 +136,7 @@ This document outlines key concepts and common interview questions related to Re
     * Identifying performance bottlenecks.
 * **Interview Questions:**
     * "How do you optimize React application performance?"
-      - Answer: Use memo, lazy loading, code splitting, proper key usage, avoid unnecessary rerenders, and implement virtualization for large lists.
+      - Answer: Use memo, lazy loading, code splitting, proper key usage, avoid unnecessary rerenders, and implement virtualization for large lists, but always start by profiling with React DevTools to identify the actual bottlenecks instead of guessing.
     * "What is memoization, and how is it used in React?"
       - Answer: Caching computed values or components to prevent unnecessary recalculations. Use useMemo and useCallback hooks.
     * "Explain code splitting and lazy loading."
@@ -238,7 +238,9 @@ Optimizing React apps involves minimizing unnecessary renders, reducing bundle s
 - **Suspense:** Defer rendering until data or code is ready.
 
 ### Advanced Topics
-- **Concurrent Rendering:** React 18 features for smoother updates.
+- **Concurrent Rendering:** React 18 features (Transitions) for smoother updates by interrupting heavy renders for high-priority user input.
+- **Transition API (`useTransition`):** Mark state updates as "transitions" to keep the UI responsive. React will render the transition in the background and switch when ready.
+- **`useDeferredValue`:** Postpone updating a part of the UI that is expensive to render, keeping the input fields feeling snappy.
 - **Resource Preloading:** Preload critical assets for faster interaction.
 - **Bundle Analysis:** Tools like webpack-bundle-analyzer.
 - **Server-Side Streaming:** Streaming HTML for faster TTI.
@@ -262,6 +264,10 @@ Advanced hooks enable powerful abstractions and custom logic in React apps.
 - **useLayoutEffect:** Synchronous effect after DOM mutations.
 - **useImperativeHandle:** Expose imperative methods to parent components.
 - **useRef:** Persist values across renders, access DOM nodes.
+- **useTransition / useDeferredValue:** (React 18) Manage non-urgent UI updates without blocking the main thread.
+- **useActionState:** (React 19) Handles form actions with built-in pending state and error handling.
+- **useOptimistic:** (React 19) Easily implement optimistic UI updates during async actions.
+- **use:** (React 19) A unique hook that can be used inside loops or conditions (with some restrictions) to read values from resources like Promises or Context.
 
 ### Advanced Topics
 - **Hook Factories:** Generate hooks with custom configuration.
@@ -313,6 +319,21 @@ Server-side rendering (SSR) and React Server Components (RSC) improve performanc
 - **Hydration:** Attaching event listeners to server-rendered HTML.
 - **Streaming:** Send HTML in chunks for faster TTI.
 - **Server Components:** Fetch data and render on the server, send minimal data to client.
+- **Client Components:** The standard React components we know, marked with `'use client'`. They handle interactivity and browser APIs.
+
+### Deep Dive: Server vs. Client Components
+
+| Feature | **Server Components** | **Client Components** |
+| :--- | :--- | :--- |
+| **Data Fetching** | Direct access to DB/Filesystem | API calls via `fetch` |
+| **Security** | Keep secrets/tokens on server | Secrets exposed to client |
+| **Bundle Size** | Zero impact on client bundle | Adds to client bundle |
+| **Interactivity** | No event listeners (onClick, etc.) | Full interactivity |
+| **Browser APIs** | No access to `window`, `localStorage`| Full access |
+| **Lifecycle** | No `useEffect`, `useState` | All hooks available |
+
+**Serialization & Hydration:**
+Server Components are rendered into a special format (not pure HTML) called the **RSC Payload**. This payload is serialized and sent to the client. The client then "rehydrates" the app, but Server Components themselves don't re-render on the client—only Client Components do. This means Server Component logic stays on the server, reducing the JavaScript sent to the browser.
 
 ### Advanced Topics
 - **Incremental Static Regeneration:** Update static pages after deployment.

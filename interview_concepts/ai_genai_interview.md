@@ -41,11 +41,11 @@ OpenAI's GPT-3.5 and GPT-4 are state-of-the-art large language models (LLMs) cap
 
 ### Sample Interview Questions
 - **Q:** How does GPT-4 differ from GPT-3.5 in architecture and capabilities?
-  - **A:** GPT-4 has more parameters, supports larger context windows (up to 128K with turbo), better reasoning, improved safety, multi-modal capabilities (vision), and superior performance on complex tasks. It's trained with more data and better alignment techniques.
+  - **A:** GPT-4 has more parameters, supports larger context windows (up to 128K with turbo), better reasoning, improved safety, multi-modal capabilities (vision), and superior performance on complex tasks. It's trained with more data and better alignment techniques, so in interviews you can frame it as “better at following instructions, chain-of-thought style reasoning, and handling long documents.”
 - **Q:** What are best practices for using the OpenAI API in production?
-  - **A:** Use API keys securely (environment variables, secret management), handle rate limits with exponential backoff, monitor usage and costs, cache frequent queries, redact sensitive data from prompts, implement proper error handling, use streaming for better UX, and set appropriate timeouts.
+  - **A:** Use API keys securely (environment variables, secret management), handle rate limits with exponential backoff, monitor usage and costs, cache frequent queries, redact sensitive data from prompts, implement proper error handling, use streaming for better UX, and set appropriate timeouts. Mention that you should also design prompts and tools so they are idempotent and safe to retry.
 - **Q:** How do you mitigate hallucinations in LLM outputs?
-  - **A:** Use RAG pipelines to ground responses in external data, prompt engineering with explicit instructions, post-processing validation, temperature=0 for deterministic outputs, function calling for structured data, and human-in-the-loop review for critical tasks.
+  - **A:** Use RAG pipelines to ground responses in external data, prompt engineering with explicit instructions, post-processing validation, temperature=0 for deterministic outputs, function calling for structured data, and human-in-the-loop review for critical tasks. In real systems you typically combine several of these (e.g., retrieval + schema validation + guardrails) rather than relying on just one.
 - **Q:** When do you prefer GPT-3.5 over GPT-4?
   - **A:** Choose GPT-3.5 for high-volume, low-risk workloads (autocompletion, simple classifications, basic Q&A) where latency/cost matter more than peak reasoning quality; upgrade to GPT-4 for complex reasoning, safety-critical flows, or when accuracy is paramount.
 - **Q:** What is the purpose of logit bias?
@@ -115,6 +115,15 @@ LangChain is a comprehensive framework for building applications with LLMs, enab
 - **Custom Chains:** Building domain-specific chains for specialized workflows.
 - **Prompt Templates:** Reusable prompt templates with variable substitution and few-shot examples.
 - **Retrieval Strategies:** Different retrieval methods (similarity, MMR, contextual compression) for RAG.
+- **ReAct Agent Example:**
+```python
+# ReAct (Reason + Act) loop pattern
+Thought: I need to find the current stock price of Apple.
+Action: Search[Apple stock price]
+Observation: Apple (AAPL) is trading at $180.
+Thought: I have the information.
+Final Answer: The current stock price of Apple is $180.
+```
 
 ### Implementation Tips
 - **Prompt Templates:** Centralize templates with `ChatPromptTemplate` or `PromptTemplate` to ensure consistent instructions across chains.
@@ -207,6 +216,10 @@ RAG pipelines combine information retrieval with LLM generation, grounding respo
 - **Citation and Attribution:** Tracking source documents and including citations in generated answers.
 - **Chunking Strategies:** Fixed-size, sentence-based, paragraph-based, semantic chunking, or sliding windows.
 
+### Technical Deep Dive: Improving Retrieval
+* **Hybrid Search**: Combines Lexical (BM25) and Semantic (Vector) search. Lexical search is great for exact keyword matches (product IDs, names), while Semantic search finds conceptual matches. Use **Reciprocal Rank Fusion (RRF)** to combine the results.
+* **Re-ranking (Cross-Encoders)**: Initial vector search is fast but can be noisy. Re-ranking takes the top-k results (e.g., 25) and uses a more accurate Model (like BGE-Reranker) to score the relationship between the query and each chunk individually.
+
 ### Implementation Tips
 - **Document Pre-processing:** Normalize casing, remove boilerplate, clean HTML/markdown, extract structured data, and chunk by semantic boundaries rather than fixed tokens when possible.
 - **Chunk Size:** Balance between too small (loses context) and too large (dilutes relevance). Typical range: 200-1000 tokens, depending on document type.
@@ -295,6 +308,10 @@ Vector databases store and search high-dimensional embeddings for semantic searc
   - **Combinations:** IVF+PQ, HNSW+PQ for optimized performance.
 - **GPU Support:** Can leverage GPUs for faster search on large datasets.
 - **Customization:** Full control over index parameters, distance metrics, and search strategies.
+
+### Vector Indexing Algorithms
+* **HNSW (Hierarchical Navigable Small World)**: Creates a multi-layered graph. It's very fast and has high recall, but it uses more memory because it stores the graph structure.
+* **IVF (Inverted File Index)**: Divides the vector space into voronoi cells (clusters). At query time, it only searches the most relevant clusters. It uses less memory than HNSW but requires a "training" step to find cluster centers.
 
 ### Pinecone
 - **Managed Service:** Fully managed, cloud-based vector database, no infrastructure management.
@@ -505,6 +522,13 @@ LLMOps (Large Language Model Operations) covers the deployment, monitoring, vers
 - **Feature Flags:** Toggle models/prompts per cohort, user segment, or percentage of traffic for gradual rollouts.
 - **Observability:** Comprehensive logging, metrics, tracing, and alerting for LLM applications.
 - **Data Management:** Training data versioning, evaluation dataset management, and data lineage tracking.
+
+### Evaluation Frameworks (RAGAS)
+Testing LLM outputs is difficult because there is no single "right" answer. Modern frameworks like **RAGAS** provide metrics:
+* **Faithfulness**: Is the answer derived solely from the retrieved context? (Prevents hallucination)
+* **Answer Relevance**: Does the answer actually address the user's question?
+* **Context Precision/Recall**: Did we retrieve the right information?
+* **LLM-as-a-judge**: Using a stronger model (like GPT-4o) to grade the responses of a smaller model based on a rubric.
 
 ### Implementation Tips
 - **Observability Stack:** Emit structured logs, metrics (Prometheus, Datadog), and traces (OpenTelemetry) tagged with model version, prompt ID, user ID, and request ID for full traceability.

@@ -132,7 +132,7 @@ This comprehensive guide is structured to help you master Python concepts from f
 - Topological sorting
 * **Interview Questions:**
     * "Explain the differences between lists and tuples."
-      - Answer: Lists are mutable, ordered sequences that can be modified. Tuples are immutable, ordered sequences that cannot be changed after creation.
+      - Answer: Lists are mutable, ordered sequences that can be modified. Tuples are immutable, ordered sequences that cannot be changed after creation, which makes them hashable (and usable as dict keys) when they contain only immutable items and often a better choice for fixed-size records.
     * "When would you use a dictionary versus a list?"
       - Answer: Use dictionaries for key-value pairs and fast lookups by key. Use lists for ordered sequences when accessing by position.
     * "Implement a function to reverse a string."
@@ -212,7 +212,7 @@ This comprehensive guide is structured to help you master Python concepts from f
 - Enums (enum module)
 * **Interview Questions:**
     * "What are the four pillars of OOP?"
-      - Answer: Encapsulation (data hiding), Inheritance (reuse code), Polymorphism (multiple forms), Abstraction (hide complexity behind simple interface).
+      - Answer: Encapsulation (data hiding), Inheritance (reuse code), Polymorphism (multiple forms), Abstraction (hide complexity behind simple interface). In interviews, it helps to pair each pillar with a short Python example, like using properties for encapsulation or abstract base classes for abstraction.
     * "Explain inheritance and polymorphism."
       - Answer: Inheritance allows classes to inherit attributes/methods. Polymorphism lets objects of different classes be treated as same type.
     * "What is the purpose of `__init__`?"
@@ -322,12 +322,14 @@ This comprehensive guide is structured to help you master Python concepts from f
 - Process synchronization
 
 ### Asynchronous Programming
-- asyncio basics
-- Coroutines and tasks
-- Event loops
-- Async/await syntax
-- Asynchronous context managers
 - Asynchronous iterators
+
+### AsyncIO Pitfalls & Best Practices
+* **Blocking the Event Loop**: The most common mistake. Calling synchronous code (like `time.sleep()` or `requests.get()`) inside an `async def` function blocks the entire loop, preventing other coroutines from running.
+    - *Fix*: Use `asyncio.sleep()` or async-native libraries (like `httpx` or `aiohttp`).
+* **CPU-Bound Tasks**: AsyncIO is for I/O-bound tasks. Heavy computation in a coroutine will still block the loop.
+    - *Fix*: Offload heavy work to `loop.run_in_executor()` using a `ProcessPoolExecutor`.
+* **Execution Order**: Always await coroutines. Forgetting an `await` means the coroutine is created but never executed.
 
 ### Parallel Processing
 - concurrent.futures
@@ -347,11 +349,14 @@ This comprehensive guide is structured to help you master Python concepts from f
 ## 7. Memory Management
 
 ### Memory Model
-- Objects and references
-- Reference counting
-- Garbage collection
 - Memory allocation
 - Memory fragmentation
+
+### Deep Dive: CPython Memory Management
+* **Reference Counting**: The primary mechanism. Each object keeps track of how many references point to it. When the count hits zero, the memory is deallocated.
+* **Cycle Detector (Generational GC)**: Needed because reference counting can't handle circular references (Object A points to B, B points back to A). Python uses 3 generations (0, 1, 2) to track and collect these cycles.
+* **obmalloc (Small Object Allocator)**: Python uses its own allocator for objects smaller than 512 bytes to avoid frequent calls to `malloc()`. It organizes memory into **Arenas** (256KB), **Pools** (4KB), and **Blocks**.
+* **Global Interpreter Lock (GIL)**: Simplifies memory management by ensuring only one thread executes Python bytecode at a time, preventing race conditions during reference count updates.
 
 ### Optimization Techniques
 - Memory profiling
@@ -1058,6 +1063,25 @@ Understanding Python internals helps with debugging, optimization, and advanced 
 
 - "How does Python create classes?"
   - Answer: Python calls type() (or metaclass) with class name, bases, and namespace. Metaclass __new__ creates class object. Can customize by defining custom metaclass.
+
+**Concrete Example: `type()` vs Metaclass**
+```python
+# Using type() dynamically
+MyClass = type('MyClass', (object,), {'x': 5})
+
+# Using a Metaclass to enforce a naming convention
+class ForceUpperCase(type):
+    def __new__(cls, name, bases, dct):
+        # Ensure all methods start with an uppercase letter
+        upper_attrs = {k.upper() if not k.startswith('__') else k: v 
+                       for k, v in dct.items()}
+        return super().__new__(cls, name, bases, upper_attrs)
+
+class MySafeClass(metaclass=ForceUpperCase):
+    def hello(self): return "world"
+
+# MySafeClass().HELLO() is now the valid method, not hello()
+```
 
 ### Descriptors
 - **Descriptor protocol**: __get__, __set__, __delete__

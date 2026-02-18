@@ -43,8 +43,8 @@
   - **Answer:** Metadata like `tags`, `summary`, `deprecated`, `responses`, and dependencies can be configured per route for documentation and behavior.
 
 ## 3. Data Validation and Serialization
-- Pydantic models
-  - **Answer:** Pydantic BaseModel classes define typed schemas with parsing, type coercion, and `.dict()` serialization.
+- Pydantic models (v1 vs v2)
+  - **Answer:** Pydantic v2 is a major rewrite in Rust, offering 5-50x better performance. It uses `model_dump()` instead of `.dict()` and has a stricter, cleaner API. FastAPI fully supports v2 while maintaining backward compatibility where possible.
 - Request and response models
   - **Answer:** Separate models let you accept certain fields and return filtered ones; FastAPI automatically uses them for body parsing and documentation.
 - Field validation
@@ -68,7 +68,23 @@
 - Security dependencies
   - **Answer:** Built-in helpers (`HTTPBasic`, `OAuth2PasswordBearer`) plug into `Depends` to enforce auth flows and parse credentials.
 - Overriding dependencies for testing
-  - **Answer:** `app.dependency_overrides` lets tests swap real dependencies with fakes/mocks, simplifying isolation.
+  - **Answer:** `app.dependency_overrides` lets tests swap real dependencies with fakes/mocks.
+
+**Testing Example (Dependency Override):**
+```python
+from fastapi.testclient import TestClient
+from main import app, get_db
+
+def override_get_db():
+    return MagicMock() # Mock database
+
+app.dependency_overrides[get_db] = override_get_db
+client = TestClient(app)
+
+def test_read_main():
+    response = client.get("/items/")
+    assert response.status_code == 200
+```
 
 ## 5. Authentication and Authorization
 - OAuth2 with Password (and hashing)
@@ -101,8 +117,18 @@
 ## 7. Background Tasks and WebSockets
 - Background tasks
   - **Answer:** FastAPI’s `BackgroundTasks` schedule follow-up work (emails, logging) after responses are sent.
-- Celery integration
-  - **Answer:** Offload heavy processing to Celery workers via message brokers, calling `.delay()` inside routes for asynchronous pipelines.
+- Celery/RQ integration
+  - **Answer:** Offload heavy processing to Celery/RQ workers via brokers (Redis/RabbitMQ). Use these for tasks taking >10s or requiring retries/advanced scheduling.
+
+**Comparison: BackgroundTasks vs. Celery**
+
+| Feature | **FastAPI BackgroundTasks** | **Celery / RQ** |
+| :--- | :--- | :--- |
+| **Running Env** | Same process/thread | Separate worker process(es) |
+| **Use Case** | Quick tasks (emails, logs) | Heavy work (video encoding, data crunching) |
+| **Complexity** | Simple, no extra infra | Requires broker (Redis) and workers |
+| **Persistence** | Lost if server restarts | Persistent (tasks stored in broker) |
+| **Retries** | No built-in retry logic | Rich retry/backoff policies |
 - WebSocket endpoints
   - **Answer:** `@app.websocket` routes maintain bi-directional connections using async send/receive loops.
 - Real-time applications
@@ -142,15 +168,15 @@
 
 ## 10. Common Interview Questions
 - What are the advantages of FastAPI over Flask/Django?
-  - **Answer:** Native async support, automatic OpenAPI docs, type-driven validation, and performance comparable to Node/Go make FastAPI attractive.
+  - **Answer:** Native async support, automatic OpenAPI docs, type-driven validation, and performance comparable to Node/Go make FastAPI attractive. It also tends to produce cleaner, more self-documenting code because request/response models and dependency graphs are all expressed via standard Python type hints.
 - How does FastAPI handle async requests?
-  - **Answer:** Path functions declared with `async def` run in the event loop, allowing concurrent awaits; sync functions run in thread pools automatically.
+  - **Answer:** Path functions declared with `async def` run in the event loop, allowing concurrent awaits; sync functions run in thread pools automatically. This means I/O-bound work scales very well, but CPU-heavy work should still be moved off the main event loop into separate processes or task queues.
 - Explain Pydantic and its role in FastAPI.
-  - **Answer:** Pydantic powers request validation, serialization, and schema generation by enforcing type hints and constraints on models.
+  - **Answer:** Pydantic powers request validation, serialization, and schema generation by enforcing type hints and constraints on models. In practice it lets you centralize all your API contracts in one place and get automatic, descriptive error messages when clients send invalid payloads.
 - How do you implement authentication in FastAPI?
   - **Answer:** Use dependencies that parse credentials (OAuth2, JWT, API keys), verify them against storage, and raise `HTTPException` on failure.
 - What is dependency injection in FastAPI?
-  - **Answer:** DI lets you declare dependencies via `Depends`, enabling shared resources, auth checks, and modular design without manual wiring.
+  - **Answer:** DI lets you declare dependencies via `Depends`, enabling shared resources, auth checks, and modular design without manual wiring. It also makes testing much easier because you can override dependencies with fakes or mocks at app or test level.
 - How do you handle database migrations?
   - **Answer:** Integrate Alembic or Tortoise migrations, generating revisions based on ORM models and applying them during deployment pipelines.
 - Explain FastAPI's background tasks.
